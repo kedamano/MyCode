@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::title}, ~{::section})}">
+<head>
+    <meta charset="UTF-8">
+    <title>我的商品 - 暖心助农选品平台</title>
+</head>
+<body>
+    <section>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="mb-1 d-flex align-items-center">
+                    <i class="bi bi-box-seam me-2 text-primary"></i>我的商品
+                </h2>
+                <p class="text-muted mb-0">管理您发布的所有农产品</p>
+            </div>
+            <a th:href="@{/product/farmer/add}" class="btn btn-primary">
+                <i class="bi bi-plus-lg me-2"></i>添加商品
+            </a>
+        </div>
+        
+        <div class="card">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>图片</th>
+                                <th>名称</th>
+                                <th>分类</th>
+                                <th>价格</th>
+                                <th>库存</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="product : ${products.records}">
+                                <td>
+                                    <img th:src="@{${product.image}}" alt="商品图片" class="rounded" style="width: 50px; height: 50px; object-fit: cover;">
+                                </td>
+                                <td th:text="${product.name}">商品名称</td>
+                                <td>
+                                    <span class="badge bg-light text-dark" th:text="${product.category}">分类</span>
+                                </td>
+                                <td>
+                                    <span class="text-primary fw-bold" th:text="'￥' + ${product.price}">价格</span>
+                                </td>
+                                <td th:text="${product.stock}">库存</td>
+                                <td>
+                                    <span class="badge" 
+                                          th:classappend="${product.status == 0 ? 'bg-warning' : (product.status == 1 ? 'bg-success' : 'bg-danger')}"
+                                          th:text="${product.status == 0 ? '待审核' : (product.status == 1 ? '已上架' : '已下架')}">
+                                        状态
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        <a th:href="@{/product/farmer/edit/{id}(id=${product.id})}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-pencil me-1"></i>编辑
+                                        </a>
+                                        <button th:if="${product.status == 1}" class="btn btn-sm btn-outline-warning" 
+                                                onclick="updateStatus(this, 2)" th:data-id="${product.id}">
+                                            <i class="bi bi-arrow-down-circle me-1"></i>下架
+                                        </button>
+                                        <button th:if="${product.status == 2}" class="btn btn-sm btn-outline-success" 
+                                                onclick="updateStatus(this, 1)" th:data-id="${product.id}">
+                                            <i class="bi bi-arrow-up-circle me-1"></i>上架
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 分页 -->
+        <div class="mt-4" th:replace="~{layout/pagination :: pagination('/product/farmer/list', ${products}, 10, '')}"></div>
+    </section>
+    
+    <script th:fragment="scripts">
+        document.addEventListener('DOMContentLoaded', function() {
+            // 商品上架/下架
+            const updateStatusBtns = document.querySelectorAll('[onclick^="updateStatus"]');
+            updateStatusBtns.forEach(btn => {
+                btn.removeAttribute('onclick');
+                btn.addEventListener('click', function() {
+                    const productId = this.getAttribute('data-id');
+                    const status = this.classList.contains('btn-outline-warning') ? 2 : 1;
+                    const statusText = status === 1 ? '上架' : '下架';
+                    
+                    if (confirm(`确定要${statusText}该商品吗？`)) {
+                        // 显示加载状态
+                        this.disabled = true;
+                        const originalText = this.innerHTML;
+                        this.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 处理中...`;
+                        
+                        // 使用axios发送请求
+                        http.post(`/product/farmer/status/${productId}`, `status=${status}`, {
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded'
+                            }
+                        })
+                        .then(response => {
+                            if (response.data && typeof response.data === 'string') {
+                                showToast(response.data, response.data.includes('成功') ? 'success' : 'danger');
+                                if (response.data.includes('成功')) {
+                                    setTimeout(() => {
+                                        window.location.reload();
+                                    }, 1500);
+                                } else {
+                                    // 恢复按钮状态
+                                    this.disabled = false;
+                                    this.innerHTML = originalText;
+                                }
+                            }
+                        })
+                        .catch(error => {
+                            console.error('操作失败:', error);
+                            showToast('操作失败，请稍后重试', 'danger');
+                            // 恢复按钮状态
+                            this.disabled = false;
+                            this.innerHTML = originalText;
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

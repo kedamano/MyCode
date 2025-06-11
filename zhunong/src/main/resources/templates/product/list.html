@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      th:replace="~{layout/base :: layout(~{::title}, ~{::section})}">
+<head>
+    <title>商品列表 - 暖心助农选品平台</title>
+</head>
+<body>
+    <section>
+        <!-- 页面标题区域 -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+            <div>
+                <h2 class="mb-1 d-flex align-items-center">
+                    <i class="bi bi-shop me-2 text-primary"></i>
+                    <span>扶贫农产品选购</span>
+                </h2>
+                <p class="text-muted mb-0">选购优质农产品，助力乡村振兴</p>
+            </div>
+            <div class="mt-3 mt-md-0 d-flex gap-2">
+                <div class="dropdown">
+                    <button class="btn btn-outline-primary dropdown-toggle d-flex align-items-center" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-sort me-2"></i>
+                        <span th:text="${
+                            sort == 'price-asc' ? '价格从低到高' : 
+                            (sort == 'price-desc' ? '价格从高到低' : 
+                            (sort == 'newest' ? '最新上架' : 
+                            (sort == 'sales' ? '销量优先' : '默认排序')))
+                        }">排序方式</span>
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="sortDropdown">
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center" th:href="@{/product/list(sort='default', category=${category}, keyword=${keyword}, minPrice=${minPrice}, maxPrice=${maxPrice})}" th:classappend="${sort == 'default' || sort == null ? 'active' : ''}">
+                                <i class="bi bi-grid-3x3-gap-fill me-2"></i>默认排序
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center" th:href="@{/product/list(sort='price-asc', category=${category}, keyword=${keyword}, minPrice=${minPrice}, maxPrice=${maxPrice})}" th:classappend="${sort == 'price-asc' ? 'active' : ''}">
+                                <i class="bi bi-sort-numeric-down me-2"></i>价格从低到高
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center" th:href="@{/product/list(sort='price-desc', category=${category}, keyword=${keyword}, minPrice=${minPrice}, maxPrice=${maxPrice})}" th:classappend="${sort == 'price-desc' ? 'active' : ''}">
+                                <i class="bi bi-sort-numeric-up me-2"></i>价格从高到低
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center" th:href="@{/product/list(sort='newest', category=${category}, keyword=${keyword}, minPrice=${minPrice}, maxPrice=${maxPrice})}" th:classappend="${sort == 'newest' ? 'active' : ''}">
+                                <i class="bi bi-clock-history me-2"></i>最新上架
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center" th:href="@{/product/list(sort='sales', category=${category}, keyword=${keyword}, minPrice=${minPrice}, maxPrice=${maxPrice})}" th:classappend="${sort == 'sales' ? 'active' : ''}">
+                                <i class="bi bi-graph-up me-2"></i>销量优先
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <a th:href="@{/cart}" class="btn btn-primary d-flex align-items-center">
+                    <i class="bi bi-cart me-2"></i>购物车
+                    <span class="badge bg-light text-primary rounded-pill ms-1" th:if="${cartItemCount > 0}" th:text="${cartItemCount}">0</span>
+                </a>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <!-- 侧边筛选栏 -->
+            <div class="col-lg-3 mb-4">
+                <div class="filter-card">
+                    <h5 class="filter-title">
+                        <i class="bi bi-funnel"></i>商品筛选
+                    </h5>
+                    
+                    <!-- 分类筛选 -->
+                    <div class="filter-group">
+                        <label class="filter-label">商品分类</label>
+                        <div class="d-flex flex-column gap-2">
+                            <a th:href="@{/product/list(keyword=${keyword})}" class="filter-link d-flex justify-content-between align-items-center" th:classappend="${category == null ? 'active' : ''}">
+                                <span><i class="bi bi-grid me-2"></i>全部商品</span>
+                                <span class="badge bg-light text-primary rounded-pill">全部</span>
+                            </a>
+                            <a th:href="@{/product/list(category='水果', keyword=${keyword})}" class="filter-link d-flex justify-content-between align-items-center" th:classappend="${category == '水果' ? 'active' : ''}">
+                                <span><i class="bi bi-apple me-2"></i>新鲜水果</span>
+                                <span class="badge bg-light text-primary rounded-pill" th:if="${categoryStats?.get('水果') != null}" th:text="${categoryStats.get('水果')}">24</span>
+                            </a>
+                            <a th:href="@{/product/list(category='蔬菜', keyword=${keyword})}" class="filter-link d-flex justify-content-between align-items-center" th:classappend="${category == '蔬菜' ? 'active' : ''}">
+                                <span><i class="bi bi-flower1 me-2"></i>时令蔬菜</span>
+                                <span class="badge bg-light text-primary rounded-pill" th:if="${categoryStats?.get('蔬菜') != null}" th:text="${categoryStats.get('蔬菜')}">32</span>
+                            </a>
+                            <a th:href="@{/product/list(category='粮油', keyword=${keyword})}" class="filter-link d-flex justify-content-between align-items-center" th:classappend="${category == '粮油' ? 'active' : ''}">
+                                <span><i class="bi bi-basket me-2"></i>粮油杂粮</span>
+                                <span class="badge bg-light text-primary rounded-pill" th:if="${categoryStats?.get('粮油') != null}" th:text="${categoryStats.get('粮油')}">18</span>
+                            </a>
+                            <a th:href="@{/product/list(category='干货', keyword=${keyword})}" class="filter-link d-flex justify-content-between align-items-center" th:classappend="${category == '干货' ? 'active' : ''}">
+                                <span><i class="bi bi-box-seam me-2"></i>农村干货</span>
+                                <span class="badge bg-light text-primary rounded-pill" th:if="${categoryStats?.get('干货') != null}" th:text="${categoryStats.get('干货')}">15</span>
+                            </a>
+                            <a th:href="@{/product/list(category='其他', keyword=${keyword})}" class="filter-link d-flex justify-content-between align-items-center" th:classappend="${category == '其他' ? 'active' : ''}">
+                                <span><i class="bi bi-three-dots me-2"></i>其他产品</span>
+                                <span class="badge bg-light text-primary rounded-pill" th:if="${categoryStats?.get('其他') != null}" th:text="${categoryStats.get('其他')}">10</span>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- 价格区间筛选 -->
+                    <div class="filter-group">
+                        <label class="filter-label">价格区间</label>
+                        <form th:action="@{/product/list}" method="get" class="price-filter">
+                            <input type="hidden" name="category" th:value="${category}">
+                            <input type="hidden" name="keyword" th:value="${keyword}">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <input type="number" name="minPrice" class="form-control" placeholder="最低价" th:value="${minPrice}" min="0">
+                                <span>-</span>
+                                <input type="number" name="maxPrice" class="form-control" placeholder="最高价" th:value="${maxPrice}" min="0">
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-sm w-100">
+                                <i class="bi bi-funnel me-1"></i>筛选
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <!-- 搜索框 -->
+                    <div class="filter-group mb-0">
+                        <label class="filter-label">商品搜索</label>
+                        <form th:action="@{/product/list}" method="get">
+                            <div class="search-box mb-2">
+                                <i class="bi bi-search search-icon"></i>
+                                <input type="text" class="form-control" name="keyword" placeholder="搜索商品名称或描述" th:value="${keyword}">
+                                <input type="hidden" name="category" th:value="${category}">
+                                <input type="hidden" name="minPrice" th:value="${minPrice}">
+                                <input type="hidden" name="maxPrice" th:value="${maxPrice}">
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-search me-1"></i>搜索
+                            </button>
+                </form>
+                    </div>
+            </div>
+        </div>
+        
+        <!-- 商品列表 -->
+            <div class="col-lg-9">
+                <!-- 当前筛选条件 -->
+                <div class="filter-tags mb-4" th:if="${category != null || keyword != null || minPrice != null || maxPrice != null}">
+                    <div class="d-flex flex-wrap gap-2 align-items-center">
+                        <span class="text-muted me-1">已选条件:</span>
+                        
+                        <div class="filter-tag" th:if="${category != null}">
+                            <span th:text="'分类: ' + ${category}">分类</span>
+                            <a th:href="@{/product/list(keyword=${keyword}, minPrice=${minPrice}, maxPrice=${maxPrice})}" class="filter-tag-close">
+                                <i class="bi bi-x"></i>
+                            </a>
+                        </div>
+                        
+                        <div class="filter-tag" th:if="${keyword != null}">
+                            <span th:text="'关键词: ' + ${keyword}">关键词</span>
+                            <a th:href="@{/product/list(category=${category}, minPrice=${minPrice}, maxPrice=${maxPrice})}" class="filter-tag-close">
+                                <i class="bi bi-x"></i>
+                            </a>
+                        </div>
+                        
+                        <div class="filter-tag" th:if="${minPrice != null || maxPrice != null}">
+                            <span th:text="'价格: ' + (${minPrice != null} ? ${minPrice} : '0') + ' - ' + (${maxPrice != null} ? ${maxPrice} : '不限')">价格</span>
+                            <a th:href="@{/product/list(category=${category}, keyword=${keyword})}" class="filter-tag-close">
+                                <i class="bi bi-x"></i>
+                            </a>
+                        </div>
+                        
+                        <a th:href="@{/product/list}" class="btn btn-sm btn-outline-primary ms-auto">
+                            <i class="bi bi-x-circle me-1"></i>清除全部
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- 商品计数 -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <p class="mb-0 text-muted" th:if="${products.total > 0}">
+                        显示 <span th:text="${products.records.size()}">0</span> 条，共 <span th:text="${products.total}">0</span> 条结果
+                    </p>
+                    <div class="d-flex align-items-center">
+                        <div class="btn-group me-2 d-none d-md-flex">
+                            <button type="button" class="btn btn-outline-primary" id="gridViewBtn" onclick="switchView('grid')" data-bs-toggle="tooltip" title="网格视图">
+                                <i class="bi bi-grid-3x3"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-primary" id="listViewBtn" onclick="switchView('list')" data-bs-toggle="tooltip" title="列表视图">
+                                <i class="bi bi-list-ul"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 商品卡片 - 网格视图 -->
+                <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4" id="gridView" th:if="${not #lists.isEmpty(products.records)}">
+            <div class="col" th:each="product : ${products.records}" th:data-product-id="${product.id}">
+                <div class="card h-100 product-card">
+                            <div class="position-relative product-img-container">
+                        <img th:if="${product.image}" th:src="${product.image}" class="card-img-top" alt="商品图片">
+                        <img th:unless="${product.image}" src="/images/product-placeholder.jpg" class="card-img-top" alt="商品图片">
+                        <span class="position-absolute top-0 end-0 badge bg-primary m-2" th:text="${product.category}">分类</span>
+                                <div class="product-actions">
+                                    <button class="btn btn-sm btn-light" title="快速查看" data-bs-toggle="tooltip">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    <button th:if="${product.stock > 0}" class="btn btn-sm btn-light" title="加入购物车" th:onclick="|addToCart(${product.id})|" data-bs-toggle="tooltip">
+                                        <i class="bi bi-cart-plus"></i>
+                                    </button>
+                                </div>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                                <h5 class="card-title">
+                                    <a th:href="@{/product/detail/{id}(id=${product.id})}" th:text="${product.name}">商品名称</a>
+                                </h5>
+                                <p class="card-text text-truncate-2" th:text="${product.description}">商品描述</p>
+                        <div class="d-flex justify-content-between align-items-center mt-auto">
+                            <div>
+                                <p class="mb-0 product-price" th:text="'￥' + ${product.price}">￥0.00</p>
+                                        <div class="d-flex align-items-center mt-1">
+                                            <span class="text-muted d-flex align-items-center small me-3">
+                                                <i class="bi bi-box-seam me-1"></i>
+                                                <span th:text="${product.stock > 0 ? '库存: ' + product.stock : '暂时缺货'}" th:class="${product.stock < 10 && product.stock > 0 ? 'text-warning' : (product.stock <= 0 ? 'text-danger' : '')}">库存</span>
+                                            </span>
+                                            <span class="text-muted d-flex align-items-center small">
+                                                <i class="bi bi-star-fill me-1 text-warning"></i>
+                                                <span>4.8</span>
+                                            </span>
+                            </div>
+                            </div>
+                        </div>
+                                <div class="mt-2 d-flex justify-content-between align-items-center">
+                                    <small class="text-muted d-flex align-items-center">
+                                <i class="bi bi-person-circle me-1"></i>
+                                <span th:text="${product.farmerName}">农户名称</span>
+                            </small>
+                                    <a th:href="@{/product/detail/{id}(id=${product.id})}" class="btn btn-sm btn-outline-primary">
+                                        查看详情
+                                    </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 商品列表 - 列表视图 -->
+        <div class="card d-none" id="listView" th:if="${not #lists.isEmpty(products.records)}">
+            <div class="list-group list-group-flush">
+                <div class="list-group-item p-3 product-list-item" th:each="product : ${products.records}" th:data-product-id="${product.id}">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-2 col-lg-1">
+                            <img th:if="${product.image}" th:src="@{${product.image}}" class="img-fluid rounded" alt="商品图片">
+                            <img th:unless="${product.image}" src="/images/product-placeholder.jpg" class="img-fluid rounded" alt="商品图片">
+                        </div>
+                        <div class="col-md-6 col-lg-7">
+                            <h5 class="mb-1">
+                                <a th:href="@{/product/detail/{id}(id=${product.id})}" class="text-decoration-none" th:text="${product.name}">商品名称</a>
+                                <span class="badge bg-primary ms-2" th:text="${product.category}">分类</span>
+                            </h5>
+                            <p class="mb-1 text-muted text-truncate-2" th:text="${product.description}">商品描述</p>
+                            <div class="d-flex align-items-center mt-2">
+                                <span class="text-muted d-flex align-items-center small me-3">
+                                    <i class="bi bi-person-circle me-1"></i>
+                                    <span th:text="${product.farmerName}">农户名称</span>
+                                </span>
+                                <span class="text-muted d-flex align-items-center small me-3">
+                                    <i class="bi bi-box-seam me-1"></i>
+                                    <span th:text="${product.stock > 0 ? '库存: ' + product.stock : '暂时缺货'}" 
+                                          th:class="${product.stock < 10 && product.stock > 0 ? 'text-warning' : (product.stock <= 0 ? 'text-danger' : '')}">库存</span>
+                                </span>
+                                <span class="text-muted d-flex align-items-center small">
+                                    <i class="bi bi-star-fill me-1 text-warning"></i>
+                                    <span>4.8</span>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-lg-4">
+                            <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-md-end h-100 gap-2">
+                                <div class="product-price text-primary fw-bold me-md-3" th:text="'￥' + ${product.price}">￥0.00</div>
+                                <div class="btn-group">
+                                    <a th:href="@{/product/detail/{id}(id=${product.id})}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye me-1"></i>详情
+                                    </a>
+                                    <button th:if="${product.stock > 0}" class="btn btn-sm btn-primary" th:onclick="|addToCart(${product.id})|">
+                                        <i class="bi bi-cart-plus me-1"></i>加入购物车
+                                    </button>
+                                    <button th:if="${product.stock <= 0}" class="btn btn-sm btn-secondary" disabled>
+                                        <i class="bi bi-x-circle me-1"></i>缺货
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 无商品提示 -->
+                <div class="empty-state" th:if="${#lists.isEmpty(products.records)}">
+                    <i class="bi bi-inbox empty-state-icon"></i>
+                    <h5 class="empty-state-text">暂无符合条件的商品</h5>
+                    <p class="empty-state-subtext">请尝试更改筛选条件或搜索其他商品</p>
+                    <a th:href="@{/product/list}" class="btn btn-primary">
+                        <i class="bi bi-grid me-1"></i>查看全部商品
+                    </a>
+        </div>
+        
+        <!-- 分页 -->
+                <div th:if="${not #lists.isEmpty(products.records)}" th:replace="~{layout/pagination :: pagination('/product/list', ${products}, 12, 'category=' + (${category} ?: '') + '&keyword=' + (${keyword} ?: '') + '&minPrice=' + (${minPrice} ?: '') + '&maxPrice=' + (${maxPrice} ?: ''))}"></div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- 加入购物车脚本 -->
+    <script th:fragment="scripts">
+        // 初始化工具提示
+        document.addEventListener('DOMContentLoaded', function() {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl, {
+                    trigger: 'hover',
+                    placement: 'top'
+                });
+            });
+            
+            // 检查本地存储中的视图偏好
+            const viewPreference = localStorage.getItem('productViewMode') || 'grid';
+            switchView(viewPreference);
+        });
+        
+        // 切换视图模式
+        function switchView(mode) {
+            const gridView = document.getElementById('gridView');
+            const listView = document.getElementById('listView');
+            const gridViewBtn = document.getElementById('gridViewBtn');
+            const listViewBtn = document.getElementById('listViewBtn');
+            
+            if (mode === 'grid') {
+                gridView.classList.remove('d-none');
+                listView.classList.add('d-none');
+                gridViewBtn.classList.add('active');
+                listViewBtn.classList.remove('active');
+            } else {
+                gridView.classList.add('d-none');
+                listView.classList.remove('d-none');
+                gridViewBtn.classList.remove('active');
+                listViewBtn.classList.add('active');
+            }
+            
+            // 保存视图偏好到本地存储
+            localStorage.setItem('productViewMode', mode);
+        }
+        
+        function addToCart(productId) {
+            const Toast = {
+                show(message, type = 'success') {
+                    const toastContainer = document.getElementById('toast-container') || (() => {
+                        const container = document.createElement('div');
+                        container.id = 'toast-container';
+                        container.className = 'position-fixed bottom-0 end-0 p-3';
+                        container.style.zIndex = '1050';
+                        document.body.appendChild(container);
+                        return container;
+                    })();
+                    
+                    const toastId = 'toast-' + Date.now();
+                    const toastEl = document.createElement('div');
+                    toastEl.className = `toast align-items-center text-white bg-${type} border-0`;
+                    toastEl.id = toastId;
+                    toastEl.setAttribute('role', 'alert');
+                    toastEl.setAttribute('aria-live', 'assertive');
+                    toastEl.setAttribute('aria-atomic', 'true');
+                    
+                    toastEl.innerHTML = `
+                        <div class="d-flex">
+                            <div class="toast-body">
+                                <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+                                ${message}
+                            </div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                    `;
+                    
+                    toastContainer.appendChild(toastEl);
+                    const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+                    toast.show();
+                    
+                    toastEl.addEventListener('hidden.bs.toast', () => {
+                        toastEl.remove();
+                    });
+                }
+            };
+            
+            fetch(`/cart/add/${productId}`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    Toast.show('商品已成功加入购物车');
+                    
+                    // 更新购物车数量显示
+                    const cartCountBadges = document.querySelectorAll('.badge[data-cart-count]');
+                    cartCountBadges.forEach(badge => {
+                        const newCount = parseInt(badge.textContent || '0') + 1;
+                        badge.textContent = newCount;
+                        badge.classList.remove('d-none');
+                    });
+                    
+                    // 添加动画效果
+                    const productCard = document.querySelector(`[data-product-id="${productId}"]`);
+                    if (productCard) {
+                        productCard.classList.add('added-to-cart');
+                        setTimeout(() => {
+                            productCard.classList.remove('added-to-cart');
+                        }, 1000);
+                    }
+                } else {
+                    Toast.show(result.message || '添加购物车失败，请重试', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Toast.show('系统异常，请稍后重试', 'danger');
+            });
+        }
+    </script>
+    
+    <style th:fragment="styles">
+        /* 产品卡片样式优化 */
+        .product-card {
+            transition: var(--transition);
+            border: none;
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow);
+        }
+        
+        .product-img-container {
+            height: 200px;
+            overflow: hidden;
+        }
+        
+        .product-card .card-img-top {
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+        
+        .product-card:hover .card-img-top {
+            transform: scale(1.05);
+        }
+        
+        .product-card .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .product-card .card-title a {
+            color: var(--text-color);
+            text-decoration: none;
+        }
+        
+        .product-card .card-title a:hover {
+            color: var(--primary-color);
+        }
+        
+        .product-card .card-text {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            max-height: 3rem;
+        }
+        
+        .product-price {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--primary-color);
+        }
+        
+        .product-actions {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            gap: 0.5rem;
+            opacity: 0;
+            transition: var(--transition);
+            z-index: 2;
+        }
+        
+        .product-card:hover .product-actions {
+            opacity: 1;
+        }
+        
+        .product-actions .btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            box-shadow: var(--shadow);
+        }
+        
+        /* 筛选标签样式 */
+        .filter-tags {
+            background-color: var(--bg-light);
+            border-radius: var(--border-radius);
+            padding: 0.75rem 1rem;
+        }
+        
+        .filter-tag {
+            display: inline-flex;
+            align-items: center;
+            background-color: var(--primary-light);
+            color: var(--primary-dark);
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+        
+        .filter-tag-close {
+            margin-left: 0.5rem;
+            color: var(--primary-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.5);
+            transition: var(--transition);
+        }
+        
+        .filter-tag-close:hover {
+            background-color: rgba(255, 255, 255, 0.8);
+            transform: scale(1.1);
+        }
+        
+        /* 添加到购物车动画 */
+        .added-to-cart {
+            animation: pulse 1s;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(46, 204, 113, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
+        }
+        
+        /* 响应式调整 */
+        @media (max-width: 991.98px) {
+            .product-img-container {
+                height: 180px;
+            }
+        }
+        
+        @media (max-width: 767.98px) {
+            .product-card .product-price {
+                font-size: 1rem;
+            }
+            
+            .product-card .card-title {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</body>
+</html>

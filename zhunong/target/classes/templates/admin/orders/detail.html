@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      th:replace="~{layout/base :: layout(~{::title}, ~{::section})}">
+<head>
+    <title>订单详情 - 暖心助农选品平台</title>
+</head>
+<body>
+    <section>
+        <!-- 页面标题 -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+            <div>
+                <h2 class="mb-1 d-flex align-items-center">
+                    <i class="bi bi-receipt me-2 text-primary"></i>订单详情
+                </h2>
+                <p class="text-muted mb-0" th:text="'订单号: ' + ${order.orderNo}">订单号: 20230602001</p>
+            </div>
+            <div class="mt-3 mt-md-0 d-flex gap-2">
+                <a th:href="@{'/admin/orders/edit/' + ${order.id}}" class="btn btn-outline-primary">
+                    <i class="bi bi-pencil me-1"></i>编辑订单
+                </a>
+                <a th:href="@{/admin/orders/list}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>返回列表
+                </a>
+            </div>
+        </div>
+        
+        <!-- 订单状态卡片 -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="me-3">
+                                <span class="badge rounded-pill p-2" 
+                                      th:classappend="${order.status == '待付款' ? 'bg-warning' : 
+                                                      (order.status == '已付款' ? 'bg-info' : 
+                                                      (order.status == '待发货' ? 'bg-secondary' : 
+                                                      (order.status == '已发货' ? 'bg-primary' : 
+                                                      (order.status == '已完成' ? 'bg-success' : 'bg-danger'))))}">
+                                    <i class="bi" 
+                                       th:classappend="${order.status == '待付款' ? 'bi-hourglass' : 
+                                                      (order.status == '已付款' ? 'bi-credit-card-fill' : 
+                                                      (order.status == '待发货' ? 'bi-box-seam' : 
+                                                      (order.status == '已发货' ? 'bi-truck' : 
+                                                      (order.status == '已完成' ? 'bi-check-circle-fill' : 'bi-x-circle-fill'))))}">
+                                    </i>
+                                </span>
+                            </div>
+                            <div>
+                                <h5 class="mb-0">
+                                    <span th:if="${order.status == '待付款'}">待付款</span>
+                                    <span th:if="${order.status == '已付款'}">已付款</span>
+                                    <span th:if="${order.status == '待发货'}">待发货</span>
+                                    <span th:if="${order.status == '已发货'}">已发货</span>
+                                    <span th:if="${order.status == '已完成'}">已完成</span>
+                                    <span th:if="${order.status == '已取消'}">已取消</span>
+                                </h5>
+                                <p class="text-muted mb-0" th:text="${#temporals.format(order.createTime, 'yyyy-MM-dd HH:mm:ss')}">订单时间</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <h4 class="mb-1">订单号: <span class="text-primary" th:text="${order.orderNo}">订单号</span></h4>
+                        <p class="text-muted mb-0">总金额: <span class="fw-bold text-primary" th:text="'￥' + ${order.totalAmount}">总金额</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 订单信息 -->
+        <div class="row">
+            <!-- 订单商品 -->
+            <div class="col-lg-8">
+                <div class="card mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">订单商品</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table mb-0">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 80px;">图片</th>
+                                        <th>商品</th>
+                                        <th>单价</th>
+                                        <th>数量</th>
+                                        <th class="text-end">小计</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="item : ${orderItems}">
+                                        <td>
+                                            <img th:src="@{${item.productImage}}" src="/images/product-placeholder.jpg" alt="商品图片" class="img-thumbnail" style="width: 60px; height: 60px; object-fit: cover;">
+                                        </td>
+                                        <td>
+                                            <div class="fw-medium" th:text="${item.productName}">商品名称</div>
+                                            <small class="text-muted" th:text="${'农户: ' + item.farmerName}">农户</small>
+                                        </td>
+                                        <td th:text="'￥' + ${item.price}">单价</td>
+                                        <td th:text="${item.quantity}">数量</td>
+                                        <td class="text-end fw-bold" th:text="'￥' + ${item.subtotal}">小计</td>
+                                    </tr>
+                                </tbody>
+                                <tfoot class="table-group-divider">
+                                    <tr>
+                                        <td colspan="4" class="text-end">商品总额:</td>
+                                        <td class="text-end fw-bold" th:text="'￥' + ${order.totalAmount}">总计</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 订单日志 -->
+                <div class="card">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">订单日志</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush">
+                            <div class="list-group-item" th:each="log : ${orderLogs}">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1" th:text="${log.action}">操作</h6>
+                                    <small th:text="${#temporals.format(log.createTime, 'yyyy-MM-dd HH:mm:ss')}">时间</small>
+                                </div>
+                                <p class="mb-1 text-muted" th:text="${log.description}">描述</p>
+                                <small th:text="${'操作人: ' + log.operator}">操作人</small>
+                            </div>
+                            
+                            <!-- 如果没有日志 -->
+                            <div class="list-group-item text-center py-4" th:if="${#lists.isEmpty(orderLogs)}">
+                                <p class="text-muted mb-0">暂无订单日志</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 订单详情 -->
+            <div class="col-lg-4">
+                <!-- 员工信息 -->
+                <div class="card mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">员工信息</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label text-muted">员工姓名</label>
+                            <div class="fw-medium" th:text="${order.employeeName}">员工姓名</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted">联系电话</label>
+                            <div class="fw-medium" th:text="${order.employeePhone}">联系电话</div>
+                        </div>
+                        <div class="mb-0">
+                            <label class="form-label text-muted">所属部门</label>
+                            <div class="fw-medium" th:text="${order.employeeDepartment}">所属部门</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 支付信息 -->
+                <div class="card mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">支付信息</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label text-muted">支付状态</label>
+                            <div>
+                                <span class="badge bg-success" th:if="${order.status == '已付款' || order.status == '待发货' || order.status == '已发货' || order.status == '已完成'}">已支付</span>
+                                <span class="badge bg-warning" th:if="${order.status == '待付款'}">未支付</span>
+                                <span class="badge bg-danger" th:if="${order.status == '已取消'}">已取消</span>
+                            </div>
+                        </div>
+                        <div class="mb-3" th:if="${order.status == '已付款' || order.status == '已发货' || order.status == '已完成'}">
+                            <label class="form-label text-muted">支付方式</label>
+                            <div class="fw-medium">
+                                <span>在线支付</span>
+                            </div>
+                        </div>
+                        <div class="mb-3" th:if="${order.payTime != null}">
+                            <label class="form-label text-muted">支付时间</label>
+                            <div class="fw-medium" th:text="${#temporals.format(order.payTime, 'yyyy-MM-dd HH:mm:ss')}">支付时间</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 配送信息 -->
+                <div class="card">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">配送信息</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label text-muted">配送状态</label>
+                            <div>
+                                <span class="badge bg-success" th:if="${order.status == '已发货' || order.status == '已完成'}">已发货</span>
+                                <span class="badge bg-primary" th:if="${order.status == '待发货'}">待发货</span>
+                                <span class="badge bg-warning" th:if="${order.status == '待付款' || order.status == '已付款'}">未发货</span>
+                                <span class="badge bg-danger" th:if="${order.status == '已取消'}">已取消</span>
+                            </div>
+                        </div>
+                        <div class="mb-3" th:if="${order.shipTime != null}">
+                            <label class="form-label text-muted">发货时间</label>
+                            <div class="fw-medium" th:text="${#temporals.format(order.shipTime, 'yyyy-MM-dd HH:mm:ss')}">发货时间</div>
+                        </div>
+                        <div class="mb-3" th:if="${order.completeTime != null}">
+                            <label class="form-label text-muted">完成时间</label>
+                            <div class="fw-medium" th:text="${#temporals.format(order.completeTime, 'yyyy-MM-dd HH:mm:ss')}">完成时间</div>
+                        </div>
+                        <div class="mb-3" th:if="${order.cancelTime != null}">
+                            <label class="form-label text-muted">取消时间</label>
+                            <div class="fw-medium" th:text="${#temporals.format(order.cancelTime, 'yyyy-MM-dd HH:mm:ss')}">取消时间</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted">收货地址</label>
+                            <div class="fw-medium" th:text="${order.address}">收货地址</div>
+                        </div>
+                        <div class="mb-0">
+                            <label class="form-label text-muted">备注</label>
+                            <div class="fw-medium" th:text="${order.remark != null && !order.remark.isEmpty() ? order.remark : '无'}">备注</div>
+                        </div>
+                        
+                        <!-- 订单操作按钮 -->
+                        <div class="text-end mt-3" th:if="${order.status != '已取消'}">
+                            <!-- 待支付 -> 已支付 -->
+                            <button th:if="${order.status == '待付款'}" 
+                                    class="btn btn-primary me-2 status-update-btn"
+                                    data-action="mark-paid"
+                                    th:data-id="${order.id}"
+                                    data-confirm="确定要将此订单标记为已支付吗？">
+                                <i class="bi bi-cash-coin me-1"></i>标记为已支付
+                            </button>
+                            
+                            <!-- 已支付 -> 待发货 -->
+                            <button th:if="${order.status == '已付款'}" 
+                                    class="btn btn-primary me-2 status-update-btn"
+                                    data-action="mark-ready-to-ship"
+                                    th:data-id="${order.id}"
+                                    data-confirm="确定要将此订单标记为待发货吗？">
+                                <i class="bi bi-box-seam me-1"></i>标记为待发货
+                            </button>
+                            
+                            <!-- 待发货 -> 已发货 -->
+                            <button th:if="${order.status == '待发货'}" 
+                                    class="btn btn-primary me-2 status-update-btn"
+                                    data-action="mark-shipped"
+                                    th:data-id="${order.id}"
+                                    data-confirm="确定要将此订单标记为已发货吗？">
+                                <i class="bi bi-truck me-1"></i>标记为已发货
+                            </button>
+                            
+                            <!-- 已发货 -> 已完成 -->
+                            <button th:if="${order.status == '已发货'}" 
+                                    class="btn btn-success me-2 status-update-btn"
+                                    data-action="mark-completed"
+                                    th:data-id="${order.id}"
+                                    data-confirm="确定要将此订单标记为已完成吗？">
+                                <i class="bi bi-check-circle me-1"></i>标记为已完成
+                            </button>
+                            
+                            <!-- 取消订单 (除了已完成状态) -->
+                            <button th:if="${order.status != '已完成'}" 
+                                    class="btn btn-danger status-update-btn"
+                                    data-action="cancel"
+                                    th:data-id="${order.id}"
+                                    data-confirm="确定要取消此订单吗？此操作不可撤销！">
+                                <i class="bi bi-x-circle me-1"></i>取消订单
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <script th:fragment="scripts">
+        // 页面特定脚本
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('订单详情页面已加载');
+            
+            // 绑定所有状态更新按钮
+            const statusBtns = document.querySelectorAll('.status-update-btn');
+            statusBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const action = this.getAttribute('data-action');
+                    const orderId = this.getAttribute('data-id');
+                    const confirmMsg = this.getAttribute('data-confirm');
+                    
+                    if (confirm(confirmMsg)) {
+                        // 显示加载状态
+                        btn.disabled = true;
+                        btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 处理中...';
+                        
+                        // 发送请求
+                        http.post(`/admin/orders/${action}/${orderId}`)
+                            .then(response => {
+                                if (response.data && typeof response.data === 'string') {
+                                    if (response.data.includes('成功')) {
+                                        showToast('操作成功', 'success');
+                                        setTimeout(() => {
+                                            window.location.reload();
+                                        }, 1500);
+                                    } else {
+                                        showToast(response.data, 'danger');
+                                        // 恢复按钮状态
+                                        btn.disabled = false;
+                                        btn.innerHTML = btn.getAttribute('data-original-text');
+                                    }
+                                }
+                            })
+                            .catch(error => {
+                                console.error('操作失败:', error);
+                                showToast('操作失败，请稍后重试', 'danger');
+                                // 恢复按钮状态
+                                btn.disabled = false;
+                                btn.innerHTML = btn.getAttribute('data-original-text');
+                            });
+                    }
+                });
+                
+                // 保存原始按钮文本
+                btn.setAttribute('data-original-text', btn.innerHTML);
+            });
+        });
+    </script>
+    
+    <style th:fragment="styles">
+        .badge {
+            font-weight: 500;
+            padding: 0.35em 0.65em;
+        }
+        
+        .form-label {
+            font-size: 0.875rem;
+            margin-bottom: 0.25rem;
+        }
+    </style>
+</body>
+</html>

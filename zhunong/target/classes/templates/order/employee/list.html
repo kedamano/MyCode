@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      th:replace="~{layout/base :: layout(~{::title}, ~{::section})}">
+<head>
+    <title>我的订单 - 暖心助农选品平台</title>
+</head>
+<body>
+    <section>
+        <!-- 页面标题 -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+            <div>
+                <h2 class="mb-1 d-flex align-items-center">
+                    <i class="bi bi-receipt me-2 text-primary"></i>我的订单
+                </h2>
+                <p class="text-muted mb-0">查看和管理您的所有订单记录</p>
+            </div>
+            <div class="mt-3 mt-md-0">
+                <a th:href="@{/product/list}" class="btn btn-primary">
+                    <i class="bi bi-basket me-1"></i>继续选购
+                </a>
+            </div>
+        </div>
+        
+        <!-- 订单筛选 -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form th:action="@{/order/employee/list}" method="get" id="filterForm">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">订单状态</label>
+                            <select class="form-select" id="statusFilter" name="status">
+                                <option value="">全部状态</option>
+                                <option value="待付款" th:selected="${status == '待付款'}">待付款</option>
+                                <option value="已付款" th:selected="${status == '已付款'}">已付款</option>
+                                <option value="已发货" th:selected="${status == '已发货'}">已发货</option>
+                                <option value="已收货" th:selected="${status == '已收货'}">已收货</option>
+                                <option value="已取消" th:selected="${status == '已取消'}">已取消</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">日期范围</label>
+                            <div class="input-group">
+                                <input type="date" class="form-control" id="startDate" name="startDate" th:value="${startDate}">
+                                <span class="input-group-text">至</span>
+                                <input type="date" class="form-control" id="endDate" name="endDate" th:value="${endDate}">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">搜索订单</label>
+                            <div class="search-box">
+                                <i class="bi bi-search search-icon"></i>
+                                <input type="text" class="form-control" id="searchKeyword" name="keyword" placeholder="订单号/商品名称" th:value="${keyword}">
+                            </div>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100" id="searchBtn">
+                                <i class="bi bi-search me-1"></i>查询
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 当前筛选条件标签 -->
+                    <div class="filter-tags mt-3" th:if="${status != null || startDate != null || endDate != null || keyword != null}">
+                        <div class="d-flex flex-wrap gap-2 align-items-center">
+                            <span class="text-muted me-1">已选条件:</span>
+                            
+                            <div class="filter-tag" th:if="${status != null && status != ''}">
+                                <span th:text="'状态: ' + ${status}">状态</span>
+                                <a th:href="@{/order/employee/list(startDate=${startDate}, endDate=${endDate}, keyword=${keyword})}" class="filter-tag-close">
+                                    <i class="bi bi-x"></i>
+                                </a>
+                            </div>
+                            
+                            <div class="filter-tag" th:if="${startDate != null && startDate != ''}">
+                                <span th:text="'开始日期: ' + ${startDate}">开始日期</span>
+                                <a th:href="@{/order/employee/list(status=${status}, endDate=${endDate}, keyword=${keyword})}" class="filter-tag-close">
+                                    <i class="bi bi-x"></i>
+                                </a>
+                            </div>
+                            
+                            <div class="filter-tag" th:if="${endDate != null && endDate != ''}">
+                                <span th:text="'结束日期: ' + ${endDate}">结束日期</span>
+                                <a th:href="@{/order/employee/list(status=${status}, startDate=${startDate}, keyword=${keyword})}" class="filter-tag-close">
+                                    <i class="bi bi-x"></i>
+                                </a>
+                            </div>
+                            
+                            <div class="filter-tag" th:if="${keyword != null && keyword != ''}">
+                                <span th:text="'关键词: ' + ${keyword}">关键词</span>
+                                <a th:href="@{/order/employee/list(status=${status}, startDate=${startDate}, endDate=${endDate})}" class="filter-tag-close">
+                                    <i class="bi bi-x"></i>
+                                </a>
+                            </div>
+                            
+                            <a th:href="@{/order/employee/list}" class="btn btn-sm btn-outline-primary ms-auto">
+                                <i class="bi bi-x-circle me-1"></i>清除全部
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- 订单列表 -->
+        <div class="card">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0" id="orderTable">
+                        <thead>
+                            <tr>
+                                <th style="min-width: 110px;">订单号</th>
+                                <th style="min-width: 200px;">商品信息</th>
+                                <th>总金额</th>
+                                <th style="min-width: 120px;">收货地址</th>
+                                <th>联系电话</th>
+                                <th>状态</th>
+                                <th>创建时间</th>
+                                <th style="min-width: 160px;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="order : ${orders.records}">
+                                <td>
+                                    <a th:href="@{/order/detail/{id}(id=${order.id})}" class="text-primary fw-medium" th:text="${order.orderNo}">
+                                        订单号
+                                    </a>
+                                </td>
+                                <td>
+                                    <div th:each="item : ${order.items}" class="mb-1 d-flex align-items-center">
+                                        <img th:src="${item.productImage != null ? item.productImage : '/images/product-placeholder.jpg'}" class="me-2" width="30" height="30" alt="商品图片" style="object-fit: cover; border-radius: 4px;">
+                                        <div>
+                                            <div class="text-truncate" style="max-width: 150px;" th:text="${item.productName}">商品名称</div>
+                                            <small class="text-muted">
+                                                <span th:text="'￥' + ${item.price}">单价</span> × 
+                                                <span th:text="${item.quantity}">数量</span>
+                                            </small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="fw-bold text-primary" th:text="'￥' + ${order.totalAmount}">总金额</span>
+                                </td>
+                                <td>
+                                    <span class="text-truncate d-inline-block" style="max-width: 150px;" th:text="${order.address}" data-bs-toggle="tooltip" th:title="${order.address}">收货地址</span>
+                                </td>
+                                <td th:text="${order.phone}">联系电话</td>
+                                <td>
+                                    <span class="badge"
+                                          th:classappend="|
+                                            ${order.status == '待付款' ? 'bg-warning' : 
+                                              (order.status == '已付款' ? 'bg-primary' : 
+                                                (order.status == '已发货' ? 'bg-info' : 
+                                                  (order.status == '已收货' ? 'bg-success' : 
+                                                    (order.status == '已取消' ? 'bg-danger' : 'bg-secondary'))))}
+                                          |"
+                                          th:text="${order.status}">
+                                        状态
+                                    </span>
+                                </td>
+                                <td>
+                                    <span th:text="${#temporals.format(order.createTime, 'yyyy-MM-dd')}" class="d-block">日期</span>
+                                    <small class="text-muted" th:text="${#temporals.format(order.createTime, 'HH:mm')}">时间</small>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a th:href="@{'/order/detail/' + ${order.id}}" class="btn btn-outline-primary">
+                                            <i class="bi bi-eye me-1"></i>详情
+                                        </a>
+                                        <button th:if="${order.status == '待付款'}" onclick="payOrder(this)" th:data-order-no="${order.orderNo}" class="btn btn-outline-success">
+                                            <i class="bi bi-credit-card me-1"></i>支付
+                                        </button>
+                                        <button th:if="${order.status == '已发货'}" onclick="confirmOrder(this)" th:data-order-id="${order.id}" class="btn btn-outline-success">
+                                            <i class="bi bi-check-circle me-1"></i>收货
+                                        </button>
+                                        <button class="btn btn-outline-danger" th:if="${order.status == '待付款'}"
+                                                onclick="cancelOrder(this)" th:data-id="${order.id}">
+                                            <i class="bi bi-x-circle me-1"></i>取消
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            
+                            <!-- 无订单提示 -->
+                            <tr th:if="${#lists.isEmpty(orders.records)}">
+                                <td colspan="8" class="text-center py-5">
+                                    <div class="d-flex flex-column align-items-center">
+                                        <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+                                        <h5 class="mt-3">暂无订单记录</h5>
+                                        <p class="text-muted">您还没有任何订单，去选购一些商品吧！</p>
+                                        <a th:href="@{/product/list}" class="btn btn-primary mt-2">
+                                            <i class="bi bi-basket me-1"></i>去选购
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- 分页 -->
+            <div class="card-footer bg-white">
+                <div th:replace="~{layout/pagination :: pagination('/order/employee/list', ${orders}, 10, 'status=' + (${status} ?: '') + '&startDate=' + (${startDate} ?: '') + '&endDate=' + (${endDate} ?: '') + '&keyword=' + (${keyword} ?: ''))}"></div>
+            </div>
+        </div>
+    </section>
+
+    <script th:fragment="scripts">
+        // 初始化工具提示
+        document.addEventListener('DOMContentLoaded', function() {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function(tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
+        
+        // 确认收货
+        function confirmOrder(btn) {
+            const orderId = btn.getAttribute('data-order-id');
+            if (!orderId) {
+                showToast('订单ID无效', 'danger');
+                return;
+            }
+            
+            if (confirm('确定已收到商品吗？确认后将无法撤销。')) {
+                // 使用axios替代fetch
+                axios.post(`/order/confirm/${orderId}`, {}, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => {
+                    showToast(response.data, 'success');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                })
+                .catch(error => {
+                    showToast('确认收货失败：' + (error.response?.data || error.message), 'danger');
+                });
+            }
+        }
+        
+        // 支付订单
+        function payOrder(btn) {
+            // 检查订单号是否有效
+            const orderNo = btn.getAttribute('data-order-no');
+            if (!orderNo) {
+                showToast('订单号无效', 'danger');
+                return;
+            }
+            
+            // 构建URL并跳转
+            const url = `/order/detail/no/${orderNo}`;
+            console.log('Redirecting to:', url);
+            window.location.href = url;
+        }
+        
+        // 取消订单
+        function cancelOrder(btn) {
+            const orderId = btn.getAttribute('data-id');
+            if (!orderId) {
+                showToast('订单ID无效', 'danger');
+                return;
+            }
+            
+            if (confirm('确定要取消订单吗？取消后将无法恢复。')) {
+                // 使用axios替代fetch
+                axios.post(`/order/cancel/${orderId}`, {}, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => {
+                    showToast(response.data, 'success');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                })
+                .catch(error => {
+                    showToast('取消订单失败：' + (error.response?.data || error.message), 'danger');
+                });
+            }
+        }
+        
+        // 显示提示信息
+        function showToast(message, type = 'success') {
+            // 创建Toast元素
+            const toastEl = document.createElement('div');
+            toastEl.className = `toast align-items-center text-white bg-${type} border-0`;
+            toastEl.setAttribute('role', 'alert');
+            toastEl.setAttribute('aria-live', 'assertive');
+            toastEl.setAttribute('aria-atomic', 'true');
+            
+            toastEl.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            `;
+            
+            // 添加到Toast容器
+            const toastContainer = document.querySelector('.toast-container');
+            if (toastContainer) {
+                toastContainer.appendChild(toastEl);
+            } else {
+                // 如果没有Toast容器，创建一个并添加到body
+                const container = document.createElement('div');
+                container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+                container.style.zIndex = '5';
+                container.appendChild(toastEl);
+                document.body.appendChild(container);
+            }
+            
+            // 初始化并显示Toast
+            const toast = new bootstrap.Toast(toastEl, {
+                autohide: true,
+                delay: 3000
+            });
+            toast.show();
+            
+            // 自动移除
+            toastEl.addEventListener('hidden.bs.toast', function () {
+                toastEl.remove();
+            });
+        }
+    </script>
+    
+    <style th:fragment="styles">
+        .badge {
+            font-weight: 500;
+            padding: 0.35em 0.65em;
+        }
+        
+        @media (max-width: 767px) {
+            .table-responsive {
+                max-height: 70vh;
+            }
+        }
+        
+        #orderTable th {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            background-color: var(--primary-light);
+        }
+    </style>
+</body>
+</html> 

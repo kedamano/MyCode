@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      th:replace="~{layout/base :: layout(~{::title}, ~{::section})}">
+<head>
+    <title>待审核商品 - 暖心助农选品平台</title>
+</head>
+<body>
+    <section>
+        <!-- Flash 消息显示 -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${successMessage}">操作成功</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${errorMessage}">操作失败</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <!-- 页面标题 -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+            <div>
+                <h2 class="mb-1 d-flex align-items-center">
+                    <i class="bi bi-hourglass-split me-2 text-warning"></i>待审核商品
+                </h2>
+                <p class="text-muted mb-0">审核新提交的商品</p>
+            </div>
+            <div class="mt-3 mt-md-0 d-flex gap-2">
+                <a th:href="@{/admin/products/list}" class="btn btn-outline-primary">
+                    <i class="bi bi-grid-3x3-gap me-1"></i>全部商品
+                </a>
+
+            </div>
+        </div>
+        
+        <!-- 数据表格 -->
+        <div class="card">
+            <div class="card-body p-0">
+                <!-- 空数据提示 -->
+                <div class="empty-state p-5" th:if="${#lists.isEmpty(products.records)}">
+                    <div class="d-flex flex-column align-items-center">
+                        <i class="bi bi-check2-circle empty-state-icon text-success"></i>
+                        <h5 class="mt-3">没有待审核商品</h5>
+                        <p class="text-muted">当前没有需要审核的商品</p>
+                    </div>
+                </div>
+                
+                <div class="table-responsive" th:if="${not #lists.isEmpty(products.records)}">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th style="width: 80px;">图片</th>
+                                <th>名称</th>
+                                <th>分类</th>
+                                <th>价格</th>
+                                <th>库存</th>
+                                <th>农户</th>
+                                <th>提交时间</th>
+                                <th style="width: 220px;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="product : ${products.records}">
+                                <td>
+                                    <img th:src="@{${product.image}}" src="/images/product-placeholder.jpg" alt="商品图片" class="img-thumbnail" style="width: 60px; height: 60px; object-fit: cover;">
+                                </td>
+                                <td>
+                                    <div class="fw-medium" th:text="${product.name}">商品名称</div>
+                                    <small class="text-muted" th:text="${product.description}">商品描述</small>
+                                </td>
+                                <td th:text="${product.category}">分类</td>
+                                <td>
+                                    <span class="text-primary fw-bold" th:text="'￥' + ${product.price}">价格</span>
+                                </td>
+                                <td th:text="${product.stock}">库存</td>
+                                <td th:text="${product.farmerName}">农户</td>
+                                <td>
+                                    <span th:text="${#temporals.format(product.createTime, 'yyyy-MM-dd')}" class="d-block">日期</span>
+                                    <small class="text-muted" th:text="${#temporals.format(product.createTime, 'HH:mm')}">时间</small>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a th:href="@{'/admin/products/detail/' + ${product.id}}" class="btn btn-outline-primary">
+                                            <i class="bi bi-eye me-1"></i>查看
+                                        </a>
+                                        <button class="btn btn-outline-success" 
+                                                th:onclick="'approveProduct(' + ${product.id} + ')'">
+                                            <i class="bi bi-check-lg me-1"></i>通过
+                                        </button>
+                                        <button class="btn btn-outline-danger" 
+                                                th:onclick="'rejectProduct(' + ${product.id} + ')'">
+                                            <i class="bi bi-x-lg me-1"></i>拒绝
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- 分页 -->
+            <div class="card-footer bg-white" th:if="${not #lists.isEmpty(products.records)}">
+                <div th:replace="~{layout/pagination :: pagination('/admin/products/pending', ${products}, 10, '')}"></div>
+            </div>
+        </div>
+        
+        <!-- 拒绝原因模态框 -->
+        <div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="rejectModalLabel">拒绝商品</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="rejectProductId">
+                        <div class="mb-3">
+                            <label for="rejectReason" class="form-label">拒绝原因</label>
+                            <textarea class="form-control" id="rejectReason" rows="3" placeholder="请输入拒绝原因，将通知给农户"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-danger" id="confirmRejectBtn">确认拒绝</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <script th:fragment="scripts">
+        // 初始化工具提示
+        document.addEventListener('DOMContentLoaded', function() {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+            
+            // 初始化拒绝模态框
+            const rejectModal = document.getElementById('rejectModal');
+            const rejectProductIdInput = document.getElementById('rejectProductId');
+            const rejectReasonInput = document.getElementById('rejectReason');
+            const confirmRejectBtn = document.getElementById('confirmRejectBtn');
+            
+            // 确认拒绝按钮点击事件
+            confirmRejectBtn.addEventListener('click', function() {
+                const productId = rejectProductIdInput.value;
+                const reason = rejectReasonInput.value.trim();
+                
+                if (!reason) {
+                    alert('请输入拒绝原因');
+                    return;
+                }
+                
+                // 使用axios发送拒绝请求
+                axios.post(`/admin/products/reject/${productId}`, 
+                    `reason=${encodeURIComponent(reason)}`, 
+                    {
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    }
+                )
+                .then(response => {
+                    // 关闭模态框
+                    const modalInstance = bootstrap.Modal.getInstance(rejectModal);
+                    modalInstance.hide();
+                    
+                    // 显示结果
+                    const result = response.data;
+                    showToast(result, result.includes('成功') ? 'success' : 'danger');
+                    if (result.includes('成功')) {
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1500);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast('操作失败，请重试', 'danger');
+                });
+            });
+        });
+        
+        // 通过商品
+        function approveProduct(productId) {
+            if (confirm('确定要通过此商品审核吗？')) {
+                // 显示处理中的提示
+                showToast('正在处理，请稍候...', 'info');
+                
+                // 使用axios替代表单提交
+                axios.post(`/admin/products/approve/${productId}`)
+                    .then(response => {
+                        // 处理成功情况
+                        if (response.status === 200) {
+                            showToast('审核通过成功', 'success');
+                            setTimeout(() => {
+                                location.reload();
+                            }, 1500);
+                        } else {
+                            showToast('操作完成，但返回状态异常', 'warning');
+                            setTimeout(() => {
+                                location.reload();
+                            }, 1500);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showToast('操作失败，请重试', 'danger');
+                    });
+            }
+        }
+        
+        // 拒绝商品
+        function rejectProduct(productId) {
+            // 显示拒绝原因模态框
+            const rejectModal = document.getElementById('rejectModal');
+            const rejectProductIdInput = document.getElementById('rejectProductId');
+            
+            // 设置商品ID
+            rejectProductIdInput.value = productId;
+            
+            // 清空之前的拒绝原因
+            const rejectReasonInput = document.getElementById('rejectReason');
+            if (rejectReasonInput) {
+                rejectReasonInput.value = '';
+            }
+            
+            // 显示模态框
+            const modalInstance = new bootstrap.Modal(rejectModal);
+            modalInstance.show();
+        }
+        
+        // 显示提示消息
+        function showToast(message, type = 'success') {
+            const toastContainer = document.getElementById('toast-container') || (() => {
+                const container = document.createElement('div');
+                container.id = 'toast-container';
+                container.className = 'position-fixed bottom-0 end-0 p-3';
+                container.style.zIndex = '1050';
+                document.body.appendChild(container);
+                return container;
+            })();
+            
+            const toastId = 'toast-' + Date.now();
+            const toastEl = document.createElement('div');
+            toastEl.className = `toast align-items-center text-white bg-${type} border-0`;
+            toastEl.id = toastId;
+            toastEl.setAttribute('role', 'alert');
+            toastEl.setAttribute('aria-live', 'assertive');
+            toastEl.setAttribute('aria-atomic', 'true');
+            
+            toastEl.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            `;
+            
+            toastContainer.appendChild(toastEl);
+            const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+            toast.show();
+            
+            toastEl.addEventListener('hidden.bs.toast', () => {
+                toastEl.remove();
+            });
+        }
+    </script>
+    
+    <style th:fragment="styles">
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem 1rem;
+            text-align: center;
+        }
+        
+        .empty-state-icon {
+            font-size: 3rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+        
+        .badge {
+            font-weight: 500;
+            padding: 0.35em 0.65em;
+        }
+    </style>
+</body>
+</html>

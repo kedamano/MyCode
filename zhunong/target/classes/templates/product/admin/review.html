@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>商品审核 - 暖心助农选品平台</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-4">
+        <h2 class="mb-4">商品审核</h2>
+        
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>商品图片</th>
+                        <th>商品名称</th>
+                        <th>价格</th>
+                        <th>库存</th>
+                        <th>分类</th>
+                        <th>农户</th>
+                        <th>创建时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="product : ${products.records}">
+                        <td>
+                            <img th:src="${product.image}" alt="商品图片" style="width: 50px; height: 50px; object-fit: cover;">
+                        </td>
+                        <td>
+                            <div th:text="${product.name}">商品名称</div>
+                            <small class="text-muted" th:text="${product.description}">商品描述</small>
+                        </td>
+                        <td th:text="'￥' + ${product.price}">价格</td>
+                        <td th:text="${product.stock}">库存</td>
+                        <td th:text="${product.category}">分类</td>
+                        <td th:text="${product.farmerName}">农户</td>
+                        <td th:text="${#temporals.format(product.createTime, 'yyyy-MM-dd HH:mm')}">创建时间</td>
+                        <td>
+                            <button class="btn btn-sm btn-success" onclick="reviewProduct(this, true)"
+                                    th:data-id="${product.id}">通过</button>
+                            <button class="btn btn-sm btn-danger" onclick="reviewProduct(this, false)"
+                                    th:data-id="${product.id}">拒绝</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 分页 -->
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+                <li class="page-item" th:classappend="${products.current == 1 ? 'disabled' : ''}">
+                    <a class="page-link" th:href="@{/product/admin/review(page=${products.current - 1})}">上一页</a>
+                </li>
+                <li class="page-item" th:each="i : ${#numbers.sequence(1, products.pages)}"
+                    th:classappend="${i == products.current ? 'active' : ''}">
+                    <a class="page-link" th:href="@{/product/admin/review(page=${i})}" th:text="${i}">1</a>
+                </li>
+                <li class="page-item" th:classappend="${products.current == products.pages ? 'disabled' : ''}">
+                    <a class="page-link" th:href="@{/product/admin/review(page=${products.current + 1})}">下一页</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function reviewProduct(btn, approved) {
+            const productId = btn.dataset.id;
+            fetch(`/product/admin/review/${productId}?approved=${approved}`, {
+                method: 'POST'
+            })
+            .then(response => response.text())
+            .then(result => {
+                alert(result);
+                if (result.includes('成功')) {
+                    location.reload();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('操作失败，请重试');
+            });
+        }
+    </script>
+</body>
+</html> 

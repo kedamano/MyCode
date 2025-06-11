@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录帮助 - 暖心助农选品平台</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center align-items-center min-vh-100">
+            <div class="col-md-8 col-lg-6 col-xl-5 fade-in">
+                <!-- 顶部logo -->
+                <div class="text-center mb-4">
+                    <a th:href="@{/}" class="text-decoration-none">
+                        <h1 class="fw-bold text-primary">
+                            <i class="bi bi-tree-fill me-2"></i>暖心助农选品平台
+                        </h1>
+                        <p class="text-muted">创新融合职工关怀与扶贫助农双重目标</p>
+                    </a>
+                </div>
+                
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-primary text-white py-3">
+                        <h3 class="text-center mb-0 fw-bold">登录帮助</h3>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle-fill me-2"></i>
+                            本页面提供系统测试账号信息，方便您快速体验系统功能。
+                        </div>
+                        
+                        <div class="mt-4">
+                            <h5 class="border-bottom pb-2">系统管理员账号</h5>
+                            <div class="row mb-2">
+                                <div class="col-4 fw-bold">用户名：</div>
+                                <div class="col-8" th:text="${adminCredentials.username}">admin</div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-4 fw-bold">密码：</div>
+                                <div class="col-8" th:text="${adminCredentials.password}">admin123</div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-4 fw-bold">角色：</div>
+                                <div class="col-8" th:text="${adminCredentials.role}">系统管理员</div>
+                            </div>
+                            <div class="d-grid">
+                                <button class="btn btn-sm btn-outline-primary copy-btn" data-username="admin" data-password="admin123">
+                                    <i class="bi bi-clipboard me-1"></i>复制账号密码
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <h5 class="border-bottom pb-2">职工账号</h5>
+                            <div class="row mb-2">
+                                <div class="col-4 fw-bold">用户名：</div>
+                                <div class="col-8" th:text="${employeeCredentials.username}">employee1</div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-4 fw-bold">密码：</div>
+                                <div class="col-8" th:text="${employeeCredentials.password}">employee123</div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-4 fw-bold">角色：</div>
+                                <div class="col-8" th:text="${employeeCredentials.role}">职工</div>
+                            </div>
+                            <div class="d-grid">
+                                <button class="btn btn-sm btn-outline-primary copy-btn" data-username="employee1" data-password="employee123">
+                                    <i class="bi bi-clipboard me-1"></i>复制账号密码
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <h5 class="border-bottom pb-2">农户账号</h5>
+                            <div class="row mb-2">
+                                <div class="col-4 fw-bold">用户名：</div>
+                                <div class="col-8" th:text="${farmerCredentials.username}">farmer1</div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-4 fw-bold">密码：</div>
+                                <div class="col-8" th:text="${farmerCredentials.password}">farmer123</div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-4 fw-bold">角色：</div>
+                                <div class="col-8" th:text="${farmerCredentials.role}">农户</div>
+                            </div>
+                            <div class="d-grid">
+                                <button class="btn btn-sm btn-outline-primary copy-btn" data-username="farmer1" data-password="farmer123">
+                                    <i class="bi bi-clipboard me-1"></i>复制账号密码
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 mt-4">
+                            <a th:href="@{/user/login}" class="btn btn-primary">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>返回登录
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 主题切换 -->
+                <div class="text-center mt-3">
+                    <label class="theme-switch">
+                        <input type="checkbox" id="theme-switch">
+                        <span class="slider"></span>
+                    </label>
+                    <span class="ms-2 text-muted">切换暗色模式</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/theme.js}"></script>
+    <script>
+        // 复制账号密码功能
+        document.querySelectorAll('.copy-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const username = this.getAttribute('data-username');
+                const password = this.getAttribute('data-password');
+                const text = `用户名: ${username}\n密码: ${password}`;
+                
+                navigator.clipboard.writeText(text).then(() => {
+                    const originalText = this.innerHTML;
+                    this.innerHTML = '<i class="bi bi-check-circle me-1"></i>复制成功';
+                    this.classList.remove('btn-outline-primary');
+                    this.classList.add('btn-success');
+                    
+                    setTimeout(() => {
+                        this.innerHTML = originalText;
+                        this.classList.remove('btn-success');
+                        this.classList.add('btn-outline-primary');
+                    }, 2000);
+                });
+            });
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: layout(~{::title}, ~{::section})}">
+<head>
+    <meta charset="UTF-8">
+    <title>账户余额 - 暖心助农选品平台</title>
+</head>
+<body>
+    <section>
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+            <div>
+                <h2 class="mb-1 d-flex align-items-center">
+                    <i class="bi bi-wallet2 me-2 text-primary"></i>账户余额
+                </h2>
+                <p class="text-muted mb-0">查看您的账户余额和交易记录</p>
+            </div>
+        </div>
+        
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title text-muted mb-3">当前余额</h5>
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-cash-coin text-success fs-1 me-3"></i>
+                            <div>
+                                <h2 class="text-success fw-bold mb-0">￥<span th:text="${account != null ? account.balance : '0.00'}">0.00</span></h2>
+                                <span class="text-muted">可提现金额</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title text-muted mb-3">快捷操作</h5>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-primary">
+                                <i class="bi bi-cash-stack me-2"></i>申请提现
+                            </button>
+                            <a th:href="@{/account/transactions}" class="btn btn-outline-primary">
+                                <i class="bi bi-journal-text me-2"></i>交易记录
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header d-flex align-items-center">
+                <i class="bi bi-info-circle me-2"></i>
+                <span>账户说明</span>
+            </div>
+            <div class="card-body">
+                <ul class="mb-0">
+                    <li>平台将在每笔订单完成后自动结算货款</li>
+                    <li>提现申请将在1-3个工作日内处理完成</li>
+                    <li>单笔提现金额不得低于100元</li>
+                    <li>如有问题，请联系客服：400-123-4567</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+    
+    <script th:fragment="scripts">
+        // 账户余额页面特定脚本可以放在这里
+    </script>
+</body>
+</html> 

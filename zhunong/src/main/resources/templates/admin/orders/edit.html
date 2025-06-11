@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      th:replace="~{layout/base :: layout(~{::title}, ~{::section})}">
+<head>
+    <title>编辑订单 - 暖心助农选品平台</title>
+</head>
+<body>
+    <section>
+        <!-- 页面标题 -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+            <div>
+                <h2 class="mb-1 d-flex align-items-center">
+                    <i class="bi bi-receipt me-2 text-primary"></i>编辑订单
+                </h2>
+                <p class="text-muted mb-0">修改订单信息</p>
+            </div>
+            <div class="mt-3 mt-md-0">
+                <a th:href="@{'/admin/orders/detail/' + ${order.id}}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>返回详情
+                </a>
+            </div>
+        </div>
+        
+        <!-- 编辑表单 -->
+        <div class="card">
+            <div class="card-body">
+                <form th:action="@{/admin/orders/save}" method="post" th:object="${order}">
+                    <input type="hidden" th:field="*{id}">
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">订单编号</label>
+                            <input type="text" class="form-control" th:field="*{orderNo}" readonly>
+                            <div class="form-text">订单编号不可修改</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">创建时间</label>
+                            <input type="text" class="form-control" th:value="${#temporals.format(order.createTime, 'yyyy-MM-dd HH:mm:ss')}" readonly>
+                            <div class="form-text">创建时间不可修改</div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">员工姓名</label>
+                            <input type="text" class="form-control" th:field="*{employeeName}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">员工电话</label>
+                            <input type="text" class="form-control" th:field="*{employeePhone}">
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">部门</label>
+                            <input type="text" class="form-control" th:field="*{employeeDepartment}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">订单状态</label>
+                            <select class="form-select" th:field="*{status}">
+                                <option value="待付款">待付款</option>
+                                <option value="已付款">已付款</option>
+                                <option value="待发货">待发货</option>
+                                <option value="已发货">已发货</option>
+                                <option value="已收货">已收货</option>
+                                <option value="已取消">已取消</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">收货地址</label>
+                            <input type="text" class="form-control" th:field="*{address}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">联系电话</label>
+                            <input type="text" class="form-control" th:field="*{phone}">
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">订单总额</label>
+                            <div class="input-group">
+                                <span class="input-group-text">￥</span>
+                                <input type="number" class="form-control" th:field="*{totalAmount}" step="0.01">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">备注</label>
+                            <input type="text" class="form-control" th:field="*{remark}">
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">支付时间</label>
+                            <input type="datetime-local" class="form-control" 
+                                  th:value="${order.payTime != null ? #temporals.format(order.payTime, 'yyyy-MM-dd''T''HH:mm') : ''}"
+                                  name="payTimeStr">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">发货时间</label>
+                            <input type="datetime-local" class="form-control" 
+                                  th:value="${order.shipTime != null ? #temporals.format(order.shipTime, 'yyyy-MM-dd''T''HH:mm') : ''}"
+                                  name="shipTimeStr">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">完成时间</label>
+                            <input type="datetime-local" class="form-control" 
+                                  th:value="${order.completeTime != null ? #temporals.format(order.completeTime, 'yyyy-MM-dd''T''HH:mm') : ''}"
+                                  name="completeTimeStr">
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>订单中的商品信息不能在此编辑，如需修改请返回详情页查看订单项。
+                    </div>
+                    
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <a th:href="@{'/admin/orders/detail/' + ${order.id}}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-lg me-1"></i>取消
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i>保存修改
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+    
+    <script th:fragment="scripts">
+        // 日期时间输入验证
+        document.addEventListener('DOMContentLoaded', function() {
+            // 如果需要添加验证或额外的脚本逻辑可以在此处添加
+            console.log('订单编辑页面已加载');
+        });
+    </script>
+</body>
+</html> 

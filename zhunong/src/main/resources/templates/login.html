@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - 暖心助农选品平台</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2e7d32;
+            --primary-hover: #1b5e20;
+            --secondary-color: #f5f5f5;
+            --text-color: #333;
+            --bg-color: #ffffff;
+            --card-bg: #ffffff;
+            --card-border: rgba(0,0,0,0.05);
+            --input-bg: #f9f9f9;
+        }
+        
+        [data-bs-theme="dark"] {
+            --primary-color: #4caf50;
+            --primary-hover: #81c784;
+            --secondary-color: #424242;
+            --text-color: #e0e0e0;
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --card-border: rgba(255,255,255,0.1);
+            --input-bg: #2d2d2d;
+        }
+        
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.8s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        
+        .card {
+            border-radius: 15px;
+            border: 1px solid var(--card-border);
+            background-color: var(--card-bg);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            transform: translateY(-5px);
+        }
+        
+        .card-header {
+            border-bottom: none;
+        }
+        
+        .bg-primary {
+            background-color: var(--primary-color) !important;
+        }
+        
+        .text-primary {
+            color: var(--primary-color) !important;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            border-color: var(--primary-hover);
+        }
+        
+        .form-control {
+            background-color: var(--input-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 12px;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus {
+            box-shadow: 0 0 0 0.25rem rgba(46, 125, 50, 0.25);
+            border-color: var(--primary-color);
+            background-color: var(--bg-color);
+        }
+        
+        /* 主题切换开关 */
+        .theme-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .theme-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: var(--primary-color);
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center align-items-center min-vh-100">
+            <div class="col-md-8 col-lg-6 col-xl-5 fade-in">
+                <!-- 顶部logo -->
+                <div class="text-center mb-4">
+                    <a th:href="@{/}" class="text-decoration-none">
+                        <h1 class="fw-bold text-primary">
+                            <i class="bi bi-tree-fill me-2"></i>暖心助农选品平台
+                        </h1>
+                        <p class="text-muted">创新融合职工关怀与扶贫助农双重目标</p>
+                    </a>
+                </div>
+                
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-primary text-white py-3">
+                        <h3 class="text-center mb-0 fw-bold">用户登录</h3>
+                    </div>
+                    <div class="card-body p-4">
+                        <!-- 警告信息 -->
+                        <div th:if="${param.error}" class="alert alert-danger" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>用户名或密码错误
+                        </div>
+                        <div th:if="${loginError}" class="alert alert-danger" role="alert" th:text="${loginError}">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>用户名或密码错误
+                        </div>
+                        <div th:if="${param.logout}" class="alert alert-success" role="alert">
+                            <i class="bi bi-check-circle-fill me-2"></i>您已成功退出
+                        </div>
+                        
+                        <!-- 登录表单 -->
+                        <form id="loginForm" th:action="@{/user/login}" method="post">
+                            <div class="mb-3">
+                                <label for="username" class="form-label">
+                                    <i class="bi bi-person me-1"></i>用户名
+                                </label>
+                                <input type="text" class="form-control form-control-lg" id="username" name="username" required autofocus>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">
+                                    <i class="bi bi-lock me-1"></i>密码
+                                </label>
+                                <input type="password" class="form-control form-control-lg" id="password" name="password" required>
+                            </div>
+                            <div class="d-grid gap-2 mt-4">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-box-arrow-in-right me-2"></i>登录
+                                </button>
+                            </div>
+                        </form>
+                        
+                        <div class="text-center mt-4">
+                            <div class="row">
+                                <div class="col-6">
+                                    <a th:href="@{/user/register}" class="text-decoration-none">
+                                        <i class="bi bi-person-plus me-1"></i>注册账号
+                                    </a>
+                                </div>
+                                <div class="col-6">
+                                    <a th:href="@{/direct-login}" class="text-decoration-none">
+                                        <i class="bi bi-question-circle me-1"></i>登录帮助
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 主题切换 -->
+                <div class="text-center mt-3">
+                    <label class="theme-switch">
+                        <input type="checkbox" id="theme-toggle">
+                        <span class="slider"></span>
+                    </label>
+                    <span class="ms-2 text-muted">切换暗色模式</span>
+                </div>
+                
+                <!-- 测试账号信息 -->
+                <div class="card mt-4 border-0 shadow-sm">
+                    <div class="card-body p-3">
+                        <h6 class="card-title"><i class="bi bi-info-circle me-1"></i>测试账号</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>角色</th>
+                                        <th>用户名</th>
+                                        <th>密码</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>管理员</td>
+                                        <td>admin</td>
+                                        <td>admin123</td>
+                                    </tr>
+                                    <tr>
+                                        <td>职工</td>
+                                        <td>employee1</td>
+                                        <td>employee123</td>
+                                    </tr>
+                                    <tr>
+                                        <td>农户</td>
+                                        <td>farmer1</td>
+                                        <td>farmer123</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/axios/1.3.4/axios.min.js"></script>
+    <script>
+        // 主题切换功能
+        const themeToggle = document.getElementById('theme-toggle');
+        
+        // 检查本地存储中的主题设置
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.setAttribute('data-bs-theme', 'dark');
+            themeToggle.checked = true;
+        }
+        
+        // 监听主题切换开关变化
+        themeToggle.addEventListener('change', () => {
+            if (themeToggle.checked) {
+                document.documentElement.setAttribute('data-bs-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.documentElement.setAttribute('data-bs-theme', 'light');
+                localStorage.setItem('theme', 'light');
+            }
+        });
+        
+        // 处理登录表单提交
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            const formData = new URLSearchParams();
+            formData.append('username', username);
+            formData.append('password', password);
+            
+            axios.post('/user/login', formData, {
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            })
+            .then(response => {
+                window.location.href = '/';
+            })
+            .catch(error => {
+                // 显示错误信息
+                let errorDiv = document.querySelector('.alert-danger');
+                if (!errorDiv) {
+                    errorDiv = document.createElement('div');
+                    errorDiv.className = 'alert alert-danger';
+                    errorDiv.role = 'alert';
+                    errorDiv.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-2"></i>用户名或密码错误';
+                    const cardBody = document.querySelector('.card-body');
+                    cardBody.insertBefore(errorDiv, cardBody.firstChild);
+                } else {
+                    errorDiv.style.display = 'block';
+                }
+            });
+        });
+    </script>
+</body>
+</html> 

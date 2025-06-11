@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      th:replace="~{layout/base :: layout(~{::title}, ~{::section})}">
+<head>
+    <title>编辑商品 - 暖心助农选品平台</title>
+</head>
+<body>
+    <section>
+        <!-- 页面标题 -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+            <div>
+                <h2 class="mb-1 d-flex align-items-center">
+                    <i class="bi bi-pencil-square me-2 text-primary"></i>编辑商品
+                </h2>
+                <p class="text-muted mb-0">修改商品信息</p>
+            </div>
+            <div class="mt-3 mt-md-0">
+                <a th:href="@{'/admin/products/detail/' + ${product.id}}" class="btn btn-outline-primary">
+                    <i class="bi bi-arrow-left me-1"></i>返回详情
+                </a>
+            </div>
+        </div>
+        
+        <!-- 编辑表单 -->
+        <div class="card">
+            <div class="card-body">
+                <form id="productEditForm" th:action="@{/admin/products/save}" method="post" enctype="multipart/form-data" class="row g-3">
+                    <input type="hidden" name="id" th:value="${product.id}">
+                    
+                    <!-- 基本信息 -->
+                    <div class="col-12">
+                        <h5 class="border-bottom pb-2 mb-3">基本信息</h5>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="name" class="form-label">商品名称 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="name" name="name" 
+                               th:value="${product.name}" required>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="category" class="form-label">商品分类 <span class="text-danger">*</span></label>
+                        <select class="form-select" id="category" name="category" required>
+                            <option value="">选择分类</option>
+                            <option value="蔬菜" th:selected="${product.category == '蔬菜'}">蔬菜</option>
+                            <option value="水果" th:selected="${product.category == '水果'}">水果</option>
+                            <option value="粮油" th:selected="${product.category == '粮油'}">粮油</option>
+                            <option value="肉禽蛋" th:selected="${product.category == '肉禽蛋'}">肉禽蛋</option>
+                            <option value="特产" th:selected="${product.category == '特产'}">特产</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label for="price" class="form-label">价格 (元) <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="price" name="price" 
+                               th:value="${product.price}" step="0.01" min="0" required>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label for="stock" class="form-label">库存数量 <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="stock" name="stock" 
+                               th:value="${product.stock}" min="0" required>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label for="status" class="form-label">商品状态 <span class="text-danger">*</span></label>
+                        <select class="form-select" id="status" name="status" required>
+                            <option value="0" th:selected="${product.status == 0}">待审核</option>
+                            <option value="1" th:selected="${product.status == 1}">已上架</option>
+                            <option value="2" th:selected="${product.status == 2}">已下架</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-12">
+                        <label for="description" class="form-label">商品描述</label>
+                        <textarea class="form-control" id="description" name="description" 
+                                  rows="3" th:text="${product.description}"></textarea>
+                    </div>
+                    
+                    <!-- 商品图片 -->
+                    <div class="col-12">
+                        <h5 class="border-bottom pb-2 mb-3 mt-2">商品图片</h5>
+                    </div>
+                    
+                    <div class="col-12">
+                        <div class="mb-3">
+                            <label for="imageFile" class="form-label">更新商品图片</label>
+                            <input class="form-control" type="file" id="imageFile" name="imageFile" accept="image/*">
+                            <div class="form-text">留空表示不更改当前图片</div>
+                        </div>
+                        
+                        <div class="card mb-3" style="max-width: 300px;">
+                            <div class="card-header bg-white">当前图片</div>
+                            <div class="card-body p-2">
+                                <img th:src="${product.image}" src="/images/product-placeholder.jpg" 
+                                     alt="商品图片" class="img-fluid rounded">
+                                <input type="hidden" name="image" th:value="${product.image}">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 农户信息 -->
+                    <div class="col-12">
+                        <h5 class="border-bottom pb-2 mb-3 mt-2">农户信息</h5>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="farmerId" class="form-label">农户 <span class="text-danger">*</span></label>
+                        <select class="form-select" id="farmerId" name="farmerId" required>
+                            <option value="">选择农户</option>
+                            <option th:each="farmer : ${farmers}" 
+                                    th:value="${farmer.id}" 
+                                    th:text="${farmer.realName + ' (' + farmer.phone + ')'}"
+                                    th:selected="${farmer.id == product.farmerId}">
+                                农户名称
+                            </option>
+                        </select>
+                    </div>
+                    
+                    <!-- 提交按钮 -->
+                    <div class="col-12 mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save me-1"></i>保存修改
+                        </button>
+                        <a th:href="@{'/admin/products/detail/' + ${product.id}}" class="btn btn-outline-secondary ms-2">
+                            <i class="bi bi-x-lg me-1"></i>取消
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+    
+    <script th:fragment="scripts">
+        // 表单验证
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('productEditForm');
+            form.addEventListener('submit', function(event) {
+                event.preventDefault();
+                
+                if (!form.checkValidity()) {
+                    event.stopPropagation();
+                    form.classList.add('was-validated');
+                    return;
+                }
+                
+                form.classList.add('was-validated');
+                
+                // 创建FormData对象用于提交表单，包括文件
+                const formData = new FormData(form);
+                
+                // 发送请求
+                http.post('/admin/products/save', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                })
+                .then(response => {
+                    const productId = formData.get('id');
+                    showToast('商品信息更新成功', 'success');
+                    
+                    // 跳转到商品详情页
+                    setTimeout(() => {
+                        window.location.href = `/admin/products/detail/${productId}`;
+                    }, 1000);
+                })
+                .catch(error => {
+                    const errorMessage = error.response?.data || '保存失败，请检查表单并重试';
+                    showToast(errorMessage, 'danger');
+                });
+            });
+        });
+    </script>
+    
+    <style th:fragment="styles">
+        .form-label {
+            font-weight: 500;
+        }
+    </style>
+</body>
+</html> 

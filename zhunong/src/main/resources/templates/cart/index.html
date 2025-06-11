@@ -1,0 +1,12 @@
+<td>
+    <button class="btn btn-sm btn-danger" th:onclick="|removeFromCart(${item.productId})|">移除</button>
+</td>
+
+<script>
+function removeFromCart(productId) {
+    fetch(`/cart/remove/${productId}`, {method: 'POST'})
+        .then(r => r.text())
+        .then(alert)
+        .then(() => location.reload());
+}
+</script> 

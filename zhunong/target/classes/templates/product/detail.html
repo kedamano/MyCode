@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${product.name} + ' - 暖心助农选品平台'">商品详情</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-4">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/product/list}">商品列表</a></li>
+                <li class="breadcrumb-item active" aria-current="page" th:text="${product.name}">商品名称</li>
+            </ol>
+        </nav>
+        
+        <div class="row mt-4">
+            <div class="col-md-5">
+                <img th:src="@{${product.image}}" alt="商品图片" class="img-fluid rounded">
+            </div>
+            <div class="col-md-7">
+                <h2 th:text="${product.name}">商品名称</h2>
+                
+                <div class="mb-3">
+                    <span class="badge bg-primary" th:text="${product.category}">分类</span>
+                    <span class="ms-2 text-muted" th:text="'农户: ' + ${product.farmerName}">农户名称</span>
+                </div>
+                
+                <div class="mb-3">
+                    <h3 class="text-danger" th:text="'￥' + ${product.price}">价格</h3>
+                </div>
+                
+                <div class="mb-4">
+                    <p class="text-muted" th:text="'库存: ' + ${product.stock}">库存</p>
+                </div>
+                
+                <div class="mb-4">
+                    <p th:text="${product.description}">商品描述</p>
+                </div>
+                
+                <div class="d-flex align-items-center">
+                    <div class="input-group me-3" style="width: 150px;">
+                        <button class="btn btn-outline-secondary" type="button" onclick="decreaseQuantity()">-</button>
+                        <input type="text" id="quantity" class="form-control text-center" value="1" readonly>
+                        <button class="btn btn-outline-secondary" type="button" onclick="increaseQuantity()">+</button>
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="addToCart()" th:data-id="${product.id}">
+                        <i class="bi bi-cart-plus"></i> 加入购物车
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function decreaseQuantity() {
+            const input = document.getElementById('quantity');
+            let quantity = parseInt(input.value);
+            if (quantity > 1) {
+                input.value = quantity - 1;
+            }
+        }
+        
+        function increaseQuantity() {
+            const input = document.getElementById('quantity');
+            let quantity = parseInt(input.value);
+            input.value = quantity + 1;
+        }
+        
+        function addToCart() {
+            const productId = document.querySelector('.btn-primary').dataset.id;
+            const quantity = parseInt(document.getElementById('quantity').value);
+            
+            fetch('/cart/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    productId: productId,
+                    quantity: quantity
+                })
+            })
+            .then(response => response.text())
+            .then(result => {
+                alert(result);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('添加失败，请重试');
+            });
+        }
+    </script>
+</body>
+</html>

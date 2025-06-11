@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <!-- 通用分页组件 -->
+    <div th:fragment="pagination(url, page, pageSize, params)" class="pagination-container" th:if="${page.total > 0}">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center w-100">
+            <!-- 页码信息 -->
+            <div class="pagination-info mb-3 mb-md-0 text-center text-md-start">
+                <span class="text-muted">
+                    显示 <span class="fw-medium" th:text="${(page.current - 1) * pageSize + 1}">1</span> - 
+                    <span class="fw-medium" th:text="${page.current * pageSize > page.total ? page.total : page.current * pageSize}">10</span> 条，
+                    共 <span class="fw-medium" th:text="${page.total}">100</span> 条记录
+                </span>
+            </div>
+            
+            <!-- 分页导航 -->
+            <nav aria-label="分页导航">
+                <ul class="pagination mb-0">
+                    <!-- 首页按钮 -->
+                    <li class="page-item" th:classappend="${page.current == 1 ? 'disabled' : ''}">
+                        <a class="page-link" th:href="@{${url}(page=1, size=${pageSize}, __${params}__)}" 
+                           aria-label="首页" data-bs-toggle="tooltip" title="首页">
+                            <i class="bi bi-chevron-double-left"></i>
+                        </a>
+                    </li>
+                    
+                    <!-- 上一页按钮 -->
+                    <li class="page-item" th:classappend="${page.current == 1 ? 'disabled' : ''}">
+                        <a class="page-link" th:href="@{${url}(page=${page.current - 1}, size=${pageSize}, __${params}__)}"
+                           aria-label="上一页" data-bs-toggle="tooltip" title="上一页">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                    
+                    <!-- 首页快速导航 -->
+                    <li class="page-item d-none d-sm-block" th:if="${page.current > 3}">
+                        <a class="page-link" th:href="@{${url}(page=1, size=${pageSize}, __${params}__)}">1</a>
+                    </li>
+                    
+                    <!-- 省略号 -->
+                    <li class="page-item disabled d-none d-sm-block" th:if="${page.current > 4}">
+                        <span class="page-link">...</span>
+                    </li>
+                    
+                    <!-- 当前页附近的页码 -->
+                    <li class="page-item" 
+                        th:with="start=${page.current < 3 ? 1 : page.current - 2},
+                                 end=${page.current + 2 > page.pages ? page.pages : page.current + 2}"
+                        th:each="i : ${#numbers.sequence(start, end)}" 
+                        th:classappend="${i == page.current ? 'active' : ''}">
+                        <a class="page-link" th:href="@{${url}(page=${i}, size=${pageSize}, __${params}__)}" th:text="${i}">1</a>
+                    </li>
+                    
+                    <!-- 省略号 -->
+                    <li class="page-item disabled d-none d-sm-block" th:if="${page.current < page.pages - 3}">
+                        <span class="page-link">...</span>
+                    </li>
+                    
+                    <!-- 末页快速导航 -->
+                    <li class="page-item d-none d-sm-block" th:if="${page.current < page.pages - 2}">
+                        <a class="page-link" th:href="@{${url}(page=${page.pages}, size=${pageSize}, __${params}__)}" th:text="${page.pages}">10</a>
+                    </li>
+                    
+                    <!-- 下一页按钮 -->
+                    <li class="page-item" th:classappend="${page.current == page.pages ? 'disabled' : ''}">
+                        <a class="page-link" th:href="@{${url}(page=${page.current + 1}, size=${pageSize}, __${params}__)}"
+                           aria-label="下一页" data-bs-toggle="tooltip" title="下一页">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                    
+                    <!-- 末页按钮 -->
+                    <li class="page-item" th:classappend="${page.current == page.pages ? 'disabled' : ''}">
+                        <a class="page-link" th:href="@{${url}(page=${page.pages}, size=${pageSize}, __${params}__)}"
+                           aria-label="末页" data-bs-toggle="tooltip" title="末页">
+                            <i class="bi bi-chevron-double-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        
+        <!-- 页码跳转器（在较大屏幕上显示） -->
+        <div class="pagination-jumper d-none d-lg-flex align-items-center mt-3">
+            <span class="text-muted me-2">跳转到</span>
+            <div class="input-group input-group-sm" style="width: 100px;">
+                <input type="number" id="pageJumper" class="form-control" min="1" th:max="${page.pages}" th:value="${page.current}">
+                <button class="btn btn-primary" type="button" onclick="jumpToPage()">跳转</button>
+            </div>
+        </div>
+    </div>
+    
+    <script th:fragment="script">
+        function jumpToPage() {
+            const input = document.getElementById('pageJumper');
+            const page = parseInt(input.value);
+            const max = parseInt(input.getAttribute('max'));
+            
+            if (page > 0 && page <= max) {
+                const url = new URL(window.location.href);
+                url.searchParams.set('page', page);
+                window.location.href = url.toString();
+            } else {
+                alert('请输入有效的页码！');
+                input.value = input.getAttribute('value');
+            }
+        }
+        
+        // 初始化提示工具
+        document.addEventListener('DOMContentLoaded', function() {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl, {
+                    trigger: 'hover',
+                    placement: 'top'
+                });
+            });
+            
+            // 监听页码输入框的回车事件
+            document.getElementById('pageJumper')?.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    jumpToPage();
+                }
+            });
+        });
+    </script>
+    
+    <style th:fragment="style">
+        .pagination-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 1.5rem;
+        }
+        
+        .pagination-info {
+            font-size: 0.9rem;
+        }
+        
+        .pagination-jumper .form-control {
+            text-align: center;
+            padding: 0.25rem 0.5rem;
+            border-radius: var(--border-radius) 0 0 var(--border-radius);
+        }
+        
+        .pagination-jumper .btn {
+            border-radius: 0 var(--border-radius) var(--border-radius) 0;
+            padding: 0.25rem 0.75rem;
+        }
+        
+        @media (max-width: 767px) {
+            .pagination-container {
+                margin-top: 1rem;
+            }
+            
+            .pagination .page-link {
+                min-width: 32px;
+                height: 32px;
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</body>
+</html> 

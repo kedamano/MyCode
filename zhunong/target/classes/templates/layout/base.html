@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:fragment="layout(title, content)" lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:replace="${title}">暖心助农选品平台</title>
+    <!-- 引入Bootstrap和图标库 -->
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- 引入字体库 -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- 引入自定义样式 -->
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+    <!-- 引入ECharts图表库 -->
+    <script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.4.0/echarts.min.js"></script>
+    <!-- 页面图标 -->
+    <link rel="icon" type="image/png" th:href="@{/images/favicon.png}">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container">
+            <a class="navbar-brand" th:href="@{/}">
+                <i class="bi bi-tree-fill me-2"></i>暖心助农选品平台
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <!-- 管理员菜单 -->
+                    <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                        <a class="nav-link" th:href="@{/admin}" th:classappend="${#httpServletRequest.getRequestURI().startsWith('/admin') && !#httpServletRequest.getRequestURI().startsWith('/admin/products') && !#httpServletRequest.getRequestURI().startsWith('/admin/statistics') ? 'active' : ''}">
+                            <i class="bi bi-speedometer2 me-1"></i>管理控制台
+                        </a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                        <a class="nav-link" th:href="@{/admin/products/list}" th:classappend="${#httpServletRequest.getRequestURI().startsWith('/admin/products') ? 'active' : ''}">
+                            <i class="bi bi-basket me-1"></i>商品管理
+                        </a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                        <a class="nav-link" th:href="@{/admin/statistics}" th:classappend="${#httpServletRequest.getRequestURI().startsWith('/admin/statistics') ? 'active' : ''}">
+                            <i class="bi bi-graph-up-arrow me-1"></i>统计报表
+                        </a>
+                    </li>
+                    
+                    <!-- 职工菜单 -->
+                    <li class="nav-item" sec:authorize="hasRole('EMPLOYEE')">
+                        <a class="nav-link" th:href="@{/product/list}" th:classappend="${#httpServletRequest.getRequestURI().startsWith('/product/list') ? 'active' : ''}">
+                            <i class="bi bi-shop me-1"></i>商品选购
+                        </a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasRole('EMPLOYEE')">
+                        <a class="nav-link" th:href="@{/cart}" th:classappend="${#httpServletRequest.getRequestURI().startsWith('/cart') ? 'active' : ''}">
+                            <i class="bi bi-cart me-1"></i>购物车
+                            <span class="badge bg-primary rounded-pill" th:if="${cartItemCount != null && cartItemCount > 0}" th:text="${cartItemCount}">0</span>
+                        </a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasRole('EMPLOYEE')">
+                        <a class="nav-link" th:href="@{/order/employee/list}" th:classappend="${#httpServletRequest.getRequestURI().startsWith('/order/employee') ? 'active' : ''}">
+                            <i class="bi bi-receipt me-1"></i>我的订单
+                        </a>
+                    </li>
+                    
+                    <!-- 农户菜单 -->
+                    <li class="nav-item" sec:authorize="hasRole('FARMER')">
+                        <a class="nav-link" th:href="@{/product/farmer/list}" th:classappend="${#httpServletRequest.getRequestURI().startsWith('/product/farmer/list') ? 'active' : ''}">
+                            <i class="bi bi-box-seam me-1"></i>我的商品
+                        </a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasRole('FARMER')">
+                        <a class="nav-link" th:href="@{/product/farmer/add}" th:classappend="${#httpServletRequest.getRequestURI().startsWith('/product/farmer/add') ? 'active' : ''}">
+                            <i class="bi bi-plus-circle me-1"></i>添加商品
+                        </a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasRole('FARMER')">
+                        <a class="nav-link" th:href="@{/order/farmer/list}" th:classappend="${#httpServletRequest.getRequestURI().startsWith('/order/farmer') ? 'active' : ''}">
+                            <i class="bi bi-receipt me-1"></i>订单管理
+                        </a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasRole('FARMER')">
+                        <a class="nav-link" th:href="@{/account/balance}">账户余额</a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasRole('FARMER')">
+                        <a class="nav-link" th:href="@{/user/farmer/profile}">个人设置</a>
+                    </li>
+                </ul>
+                
+                <!-- 用户信息和操作 -->
+                <ul class="navbar-nav">
+                    <!-- 暗色模式切换 -->
+                    <li class="nav-item">
+                        <button id="theme-toggle" class="btn btn-link nav-link" aria-label="切换主题模式">
+                            <i class="bi bi-moon"></i>
+                        </button>
+                    </li>
+                    
+                    <!-- 用户账户信息 -->
+                    <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person-circle me-1"></i>
+                            <span th:text="${#authentication != null && #authentication.name != null ? #authentication.name : '用户'}">用户名</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <span class="dropdown-item-text">
+                                    <strong>角色：</strong>
+                                    <span th:text="${#authentication != null && #authentication.principal != null ? (#authentication.principal.authorities[0].authority == 'ROLE_EMPLOYEE' ? '职工' : (#authentication.principal.authorities[0].authority == 'ROLE_FARMER' ? '农户' : '管理员')) : '未知'}" />
+                                </span>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li sec:authorize="hasRole('EMPLOYEE')">
+                                <a class="dropdown-item d-flex align-items-center" th:href="@{/account/balance}">
+                                    <i class="bi bi-wallet2 me-2"></i>账户余额
+                                </a>
+                            </li>
+                            <li sec:authorize="isAuthenticated()">
+                                <a class="dropdown-item d-flex align-items-center" th:href="@{/user/profile}">
+                                    <i class="bi bi-person-gear me-2"></i>个人设置
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form th:action="@{/logout}" method="post" id="logoutForm">
+                                    <button type="button" id="logoutBtn" class="dropdown-item d-flex align-items-center">
+                                        <i class="bi bi-box-arrow-right me-2"></i>退出登录
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
+                    
+                    <!-- 未登录用户 -->
+                    <li class="nav-item" sec:authorize="!isAuthenticated()">
+                        <a class="nav-link d-flex align-items-center" th:href="@{/user/login}">
+                            <i class="bi bi-box-arrow-in-right me-1"></i>登录
+                        </a>
+                    </li>
+                    <li class="nav-item" sec:authorize="!isAuthenticated()">
+                        <a class="nav-link d-flex align-items-center" th:href="@{/user/register}">
+                            <i class="bi bi-person-plus me-1"></i>注册
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- 主内容区 -->
+    <main class="container py-4">
+        <div class="fade-in" th:replace="${content}">
+            <!-- 内容将被替换 -->
+        </div>
+    </main>
+    
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4 mb-md-0">
+                    <h5>关于我们</h5>
+                    <p>暖心助农选品平台创新融合职工关怀与扶贫助农双重目标，让职工收获贴心福利，同时为农户拓宽销售渠道，推动乡村振兴。</p>
+                    <div class="mt-3">
+                        <a href="#" class="btn btn-sm btn-outline-primary me-2">
+                            <i class="bi bi-file-earmark-text me-1"></i>了解更多
+                        </a>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4 mb-md-0">
+                    <h5>联系方式</h5>
+                    <ul class="list-unstyled">
+                        <li class="d-flex align-items-center mb-2">
+                            <i class="bi bi-envelope me-2"></i>
+                            <a href="mailto:contact@zhunong.com">contact@zhunong.com</a>
+                        </li>
+                        <li class="d-flex align-items-center mb-2">
+                            <i class="bi bi-telephone me-2"></i>
+                            <a href="tel:4001234567">400-123-4567</a>
+                        </li>
+                        <li class="d-flex align-items-center">
+                            <i class="bi bi-geo-alt me-2"></i>
+                            <span>北京市海淀区</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5>友情链接</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="http://www.moa.gov.cn/" target="_blank" class="d-flex align-items-center"><i class="bi bi-link-45deg me-2"></i>农业农村部</a></li>
+                        <li class="mb-2"><a href="http://www.nybgzx.org.cn/" target="_blank" class="d-flex align-items-center"><i class="bi bi-link-45deg me-2"></i>乡村振兴</a></li>
+                        <li><a href="http://www.cpad.gov.cn/" target="_blank" class="d-flex align-items-center"><i class="bi bi-link-45deg me-2"></i>国家乡村振兴局</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr>
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
+                <p class="mb-2 mb-md-0">© 2025 暖心助农选品平台 版权所有</p>
+                <div class="d-flex">
+                    <a href="#" class="me-3">隐私政策</a>
+                    <a href="#" class="me-3">使用条款</a>
+                    <a href="#" class="me-3">帮助中心</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- 返回顶部按钮 -->
+    <button id="back-to-top" class="btn btn-primary btn-sm position-fixed bottom-0 end-0 m-4 d-none">
+        <i class="bi bi-arrow-up"></i>
+    </button>
+    
+    <!-- JavaScript依赖 -->
+    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/js/bootstrap.bundle.min.js"></script>
+    <!-- Axios库 -->
+    <script src="https://cdn.bootcdn.net/ajax/libs/axios/1.3.4/axios.min.js"></script>
+    <!-- Axios配置 -->
+    <script>
+        // 创建axios全局实例
+        const http = axios.create({
+            timeout: 10000, // 请求超时时间
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+        
+        // 请求拦截器
+        http.interceptors.request.use(
+            config => {
+                // 可以在这里添加公共请求头
+                return config;
+            },
+            error => {
+                console.error('请求错误:', error);
+                return Promise.reject(error);
+            }
+        );
+        
+        // 响应拦截器
+        http.interceptors.response.use(
+            response => {
+                return response;
+            },
+            error => {
+                // 处理响应错误
+                console.error('响应错误:', error);
+                
+                // 如果是重定向或未授权，跳转到登录页
+                if (error.response && (error.response.status === 302 || error.response.status === 401)) {
+                    window.location.href = '/user/login';
+                    return;
+                }
+                
+                return Promise.reject(error);
+            }
+        );
+    </script>
+    <!-- 主题管理 -->
+    <script th:src="@{/js/theme.js}"></script>
+    <!-- 通用脚本 -->
+    <script>
+        // 返回顶部功能
+        document.addEventListener('DOMContentLoaded', function() {
+            const backToTopButton = document.getElementById('back-to-top');
+            
+            window.addEventListener('scroll', function() {
+                if (window.pageYOffset > 300) {
+                    backToTopButton.classList.remove('d-none');
+                } else {
+                    backToTopButton.classList.add('d-none');
+                }
+            });
+            
+            backToTopButton.addEventListener('click', function() {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+            
+            // 初始化所有提示工具
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+            
+            // 处理登出请求
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function() {
+                    http.post('/logout')
+                        .then(response => {
+                            window.location.href = '/user/login?logout';
+                        })
+                        .catch(error => {
+                            console.error('登出失败', error);
+                            window.location.href = '/user/login';
+                        });
+                });
+            }
+        });
+    </script>
+    <!-- 页面特定脚本 -->
+    <script th:replace="~{::scripts}"></script>
+</body>
+</html> 

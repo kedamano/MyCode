@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      th:replace="~{layout/base :: layout(~{::title}, ~{::section})}">
+<head>
+    <meta charset="UTF-8">
+    <title>系统设置 - 暖心助农选品平台</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <section>
+        <!-- 页面标题 -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+            <div>
+                <h2 class="mb-1 d-flex align-items-center">
+                    <i class="bi bi-gear me-2 text-primary"></i>系统设置
+                </h2>
+                <p class="text-muted mb-0">管理系统配置、数据备份和安全参数</p>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-8">
+                <!-- 系统配置 -->
+                <div class="card mb-4">
+                    <div class="card-header d-flex align-items-center">
+                        <i class="bi bi-sliders me-2"></i>
+                        <h5 class="card-title mb-0">系统配置</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="settingsForm">
+                            <div class="mb-3">
+                                <label for="siteName" class="form-label">网站名称</label>
+                                <input type="text" class="form-control" id="siteName" value="暖心助农选品平台">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="siteDescription" class="form-label">网站描述</label>
+                                <textarea class="form-control" id="siteDescription" rows="2">集合职工福利和助农扶贫的平台</textarea>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="contactEmail" class="form-label">联系邮箱</label>
+                                <input type="email" class="form-control" id="contactEmail" value="admin@example.com">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="contactPhone" class="form-label">联系电话</label>
+                                <input type="tel" class="form-control" id="contactPhone" value="400-123-4567">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="recordNumber" class="form-label">备案号</label>
+                                <input type="text" class="form-control" id="recordNumber" value="京ICP备XXXXXXXX号">
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save me-1"></i>保存设置
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- 商品分类管理 -->
+                <div class="card mb-4">
+                    <div class="card-header d-flex align-items-center">
+                        <i class="bi bi-tags me-2"></i>
+                        <h5 class="card-title mb-0">商品分类管理</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="d-flex mb-2">
+                                <input type="text" class="form-control me-2" id="newCategory" placeholder="输入新分类名称">
+                                <button class="btn btn-primary" id="addCategory">
+                                    <i class="bi bi-plus-lg me-1"></i>添加
+                                </button>
+                            </div>
+                            
+                            <div class="list-group">
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span class="d-flex align-items-center">
+                                        <i class="bi bi-apple me-2 text-primary"></i>水果
+                                    </span>
+                                    <button class="btn btn-sm btn-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span class="d-flex align-items-center">
+                                        <i class="bi bi-flower1 me-2 text-success"></i>蔬菜
+                                    </span>
+                                    <button class="btn btn-sm btn-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span class="d-flex align-items-center">
+                                        <i class="bi bi-basket me-2 text-warning"></i>粮油
+                                    </span>
+                                    <button class="btn btn-sm btn-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span class="d-flex align-items-center">
+                                        <i class="bi bi-three-dots me-2 text-info"></i>其他
+                                    </span>
+                                    <button class="btn btn-sm btn-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <!-- 数据备份 -->
+                <div class="card mb-4">
+                    <div class="card-header d-flex align-items-center">
+                        <i class="bi bi-database-check me-2"></i>
+                        <h5 class="card-title mb-0">数据备份</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>定期备份数据库可以防止数据丢失。</p>
+                        <button class="btn btn-primary w-100 mb-2" id="backupBtn">
+                            <i class="bi bi-cloud-arrow-up me-1"></i>立即备份
+                        </button>
+                        
+                        <h6 class="mt-4">备份记录</h6>
+                        <ul class="list-group">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span class="d-flex align-items-center">
+                                    <i class="bi bi-file-earmark-zip me-2 text-primary"></i>
+                                backup_2023-06-01.sql
+                                </span>
+                                <div>
+                                    <button class="btn btn-sm btn-info me-1">
+                                        <i class="bi bi-download"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span class="d-flex align-items-center">
+                                    <i class="bi bi-file-earmark-zip me-2 text-primary"></i>
+                                backup_2023-05-15.sql
+                                </span>
+                                <div>
+                                    <button class="btn btn-sm btn-info me-1">
+                                        <i class="bi bi-download"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- 系统信息 -->
+                <div class="card">
+                    <div class="card-header d-flex align-items-center">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <h5 class="card-title mb-0">系统信息</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>系统版本</span>
+                                <span class="fw-medium">v1.0.0</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>Java版本</span>
+                                <span class="fw-medium">1.8.0_292</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>Spring Boot</span>
+                                <span class="fw-medium">2.7.0</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>MySQL版本</span>
+                                <span class="fw-medium">8.0.26</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>服务器时间</span>
+                                <span id="serverTime" class="fw-medium"></span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script th:fragment="scripts">
+        // 更新服务器时间
+        function updateServerTime() {
+            const now = new Date();
+            document.getElementById('serverTime').textContent = now.toLocaleString();
+        }
+        
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化服务器时间并定时更新
+            updateServerTime();
+            setInterval(updateServerTime, 1000);
+            
+            // 设置表单提交事件
+            document.getElementById('settingsForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const Toast = {
+                    show(message, type = 'success') {
+                        const toastContainer = document.getElementById('toast-container') || (() => {
+                            const container = document.createElement('div');
+                            container.id = 'toast-container';
+                            container.className = 'position-fixed bottom-0 end-0 p-3';
+                            container.style.zIndex = '1050';
+                            document.body.appendChild(container);
+                            return container;
+                        })();
+                        
+                        const toastId = 'toast-' + Date.now();
+                        const toastEl = document.createElement('div');
+                        toastEl.className = `toast align-items-center text-white bg-${type} border-0`;
+                        toastEl.id = toastId;
+                        toastEl.setAttribute('role', 'alert');
+                        toastEl.setAttribute('aria-live', 'assertive');
+                        toastEl.setAttribute('aria-atomic', 'true');
+                        
+                        toastEl.innerHTML = `
+                            <div class="d-flex">
+                                <div class="toast-body">
+                                    <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+                                    ${message}
+                                </div>
+                                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                            </div>
+                        `;
+                        
+                        toastContainer.appendChild(toastEl);
+                        const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+                        toast.show();
+                        
+                        toastEl.addEventListener('hidden.bs.toast', () => {
+                            toastEl.remove();
+                        });
+                    }
+                };
+                
+                Toast.show('设置保存成功！');
+            });
+            
+            // 设置备份按钮点击事件
+            document.getElementById('backupBtn').addEventListener('click', function() {
+                this.innerHTML = '<i class="bi bi-arrow-repeat spin me-1"></i>备份中...';
+                this.disabled = true;
+                
+                setTimeout(() => {
+                    this.innerHTML = '<i class="bi bi-cloud-arrow-up me-1"></i>立即备份';
+                    this.disabled = false;
+                    
+                    const Toast = {
+                        show(message, type = 'success') {
+                            const toastContainer = document.getElementById('toast-container') || (() => {
+                                const container = document.createElement('div');
+                                container.id = 'toast-container';
+                                container.className = 'position-fixed bottom-0 end-0 p-3';
+                                container.style.zIndex = '1050';
+                                document.body.appendChild(container);
+                                return container;
+                            })();
+                            
+                            const toastId = 'toast-' + Date.now();
+                            const toastEl = document.createElement('div');
+                            toastEl.className = `toast align-items-center text-white bg-${type} border-0`;
+                            toastEl.id = toastId;
+                            toastEl.setAttribute('role', 'alert');
+                            toastEl.setAttribute('aria-live', 'assertive');
+                            toastEl.setAttribute('aria-atomic', 'true');
+                            
+                            toastEl.innerHTML = `
+                                <div class="d-flex">
+                                    <div class="toast-body">
+                                        <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+                                        ${message}
+                                    </div>
+                                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                                </div>
+                            `;
+                            
+                            toastContainer.appendChild(toastEl);
+                            const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+                            toast.show();
+                            
+                            toastEl.addEventListener('hidden.bs.toast', () => {
+                                toastEl.remove();
+                            });
+                        }
+                    };
+                    
+                    Toast.show('数据库备份完成！');
+                }, 2000);
+            });
+            
+            // 设置添加分类按钮点击事件
+            document.getElementById('addCategory').addEventListener('click', function() {
+                const newCategory = document.getElementById('newCategory').value.trim();
+                if (newCategory) {
+                    const Toast = {
+                        show(message, type = 'success') {
+                            const toastContainer = document.getElementById('toast-container') || (() => {
+                                const container = document.createElement('div');
+                                container.id = 'toast-container';
+                                container.className = 'position-fixed bottom-0 end-0 p-3';
+                                container.style.zIndex = '1050';
+                                document.body.appendChild(container);
+                                return container;
+                            })();
+                            
+                            const toastId = 'toast-' + Date.now();
+                            const toastEl = document.createElement('div');
+                            toastEl.className = `toast align-items-center text-white bg-${type} border-0`;
+                            toastEl.id = toastId;
+                            toastEl.setAttribute('role', 'alert');
+                            toastEl.setAttribute('aria-live', 'assertive');
+                            toastEl.setAttribute('aria-atomic', 'true');
+                            
+                            toastEl.innerHTML = `
+                                <div class="d-flex">
+                                    <div class="toast-body">
+                                        <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+                                        ${message}
+                                    </div>
+                                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                                </div>
+                            `;
+                            
+                            toastContainer.appendChild(toastEl);
+                            const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+                            toast.show();
+                            
+                            toastEl.addEventListener('hidden.bs.toast', () => {
+                                toastEl.remove();
+                            });
+                        }
+                    };
+                    
+                    Toast.show('分类添加成功！');
+                    document.getElementById('newCategory').value = '';
+                } else {
+                    const Toast = {
+                        show(message, type = 'danger') {
+                            const toastContainer = document.getElementById('toast-container') || (() => {
+                                const container = document.createElement('div');
+                                container.id = 'toast-container';
+                                container.className = 'position-fixed bottom-0 end-0 p-3';
+                                container.style.zIndex = '1050';
+                                document.body.appendChild(container);
+                                return container;
+                            })();
+                            
+                            const toastId = 'toast-' + Date.now();
+                            const toastEl = document.createElement('div');
+                            toastEl.className = `toast align-items-center text-white bg-${type} border-0`;
+                            toastEl.id = toastId;
+                            toastEl.setAttribute('role', 'alert');
+                            toastEl.setAttribute('aria-live', 'assertive');
+                            toastEl.setAttribute('aria-atomic', 'true');
+                            
+                            toastEl.innerHTML = `
+                                <div class="d-flex">
+                                    <div class="toast-body">
+                                        <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+                                        ${message}
+                                    </div>
+                                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                                </div>
+                            `;
+                            
+                            toastContainer.appendChild(toastEl);
+                            const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+                            toast.show();
+                            
+                            toastEl.addEventListener('hidden.bs.toast', () => {
+                                toastEl.remove();
+                            });
+                        }
+                    };
+                    
+                    Toast.show('请输入分类名称！');
+                }
+            });
+        });
+    </script>
+    
+    <style th:fragment="styles">
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .spin {
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+        .card-header {
+            background-color: var(--primary-light);
+            color: var(--primary-dark);
+        }
+        .card-header i {
+            color: var(--primary-color);
+        }
+        .list-group-item {
+            transition: var(--transition);
+        }
+        .list-group-item:hover {
+            background-color: var(--primary-light);
+        }
+    </style>
+</body>
+</html> 

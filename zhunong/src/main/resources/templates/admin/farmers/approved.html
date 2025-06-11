@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      th:replace="~{layout/base :: layout(~{::title}, ~{::section})}">
+<head>
+    <title>已审核农户 - 暖心助农选品平台</title>
+</head>
+<body>
+    <section>
+        <!-- 页面标题 -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+            <div>
+                <h2 class="mb-1 d-flex align-items-center">
+                    <i class="bi bi-person-check me-2 text-primary"></i>已审核农户
+                </h2>
+                <p class="text-muted mb-0">管理已通过审核的农户账户</p>
+            </div>
+            <div class="mt-3 mt-md-0">
+                <a th:href="@{/admin/farmers/add}" class="btn btn-primary">
+                    <i class="bi bi-person-plus me-1"></i>添加农户
+                </a>
+            </div>
+        </div>
+        
+        <!-- 导航标签 -->
+        <ul class="nav nav-tabs mb-4">
+            <li class="nav-item">
+                <a class="nav-link d-flex align-items-center" th:href="@{/admin/farmers/pending}">
+                    <i class="bi bi-hourglass-split me-1"></i>待审核
+                    <span class="badge bg-primary rounded-pill ms-1" th:if="${pendingCount > 0}" th:text="${pendingCount}">12</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active d-flex align-items-center" th:href="@{/admin/farmers/approved}">
+                    <i class="bi bi-check-circle me-1"></i>已审核
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link d-flex align-items-center" th:href="@{/admin/farmers/disabled}">
+                    <i class="bi bi-slash-circle me-1"></i>已禁用
+                </a>
+            </li>
+        </ul>
+        
+        <!-- 搜索和筛选 -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form th:action="@{/admin/farmers/approved}" method="get" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="username" class="form-label">用户名</label>
+                        <input type="text" class="form-control" id="username" name="username" 
+                               placeholder="搜索用户名" th:value="${username != null ? username : param.username}">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="realName" class="form-label">农户姓名</label>
+                        <input type="text" class="form-control" id="realName" name="realName" 
+                               placeholder="搜索姓名" th:value="${realName != null ? realName : param.realName}">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="phone" class="form-label">联系电话</label>
+                        <input type="text" class="form-control" id="phone" name="phone" 
+                               placeholder="搜索电话" th:value="${phone != null ? phone : param.phone}">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="address" class="form-label">地区</label>
+                        <input type="text" class="form-control" id="address" name="address" 
+                               placeholder="搜索地区" th:value="${address != null ? address : param.address}">
+                    </div>
+                    <div class="col-12 text-end">
+                        <a th:href="@{/admin/farmers/approved}" class="btn btn-outline-secondary">重置</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search me-1"></i>查询
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- 空数据提示 -->
+        <div class="empty-state" th:if="${#lists.isEmpty(farmers.records)}">
+            <i class="bi bi-people empty-state-icon"></i>
+            <h5 class="empty-state-text">暂无已审核农户</h5>
+            <p class="empty-state-subtext">目前没有符合条件的已审核农户账户</p>
+            <a th:href="@{/admin/farmers/pending}" class="btn btn-primary">
+                <i class="bi bi-hourglass-split me-1"></i>查看待审核农户
+            </a>
+        </div>
+        
+        <!-- 数据表格 -->
+        <div class="card" th:if="${not #lists.isEmpty(farmers.records)}">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>用户名</th>
+                                <th>真实姓名</th>
+                                <th>联系电话</th>
+                                <th>邮箱</th>
+                                <th>地址</th>
+                                <th>注册时间</th>
+                                <th>状态</th>
+                                <th style="width: 120px;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="farmer : ${farmers.records}">
+                                <td th:text="${farmer.username}">用户名</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                       
+                                        <span th:text="${farmer.realName}">真实姓名</span>
+                                    </div>
+                                </td>
+                                <td th:text="${farmer.phone}">联系电话</td>
+                                <td th:text="${farmer.email}">邮箱</td>
+                                <td th:text="${farmer.address}">地区</td>
+
+                                <td>
+                                    <span th:text="${farmer.createTime}" class="d-block">日期</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success">已审核</span>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a th:href="@{'/admin/farmers/detail/' + ${farmer.id}}" class="btn btn-outline-primary">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <button class="btn btn-outline-danger" th:onclick="'disableFarmer(' + ${farmer.id} + ')'">
+                                            <i class="bi bi-slash-circle"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer bg-white">
+                <div th:replace="~{layout/pagination :: pagination('/admin/farmers/approved', ${farmers}, 10, 'username=${username != null ? username : param.username}, realName=${realName != null ? realName : param.realName}, phone=${phone != null ? phone : param.phone}, address=${address != null ? address : param.address}')}"></div>
+            </div>
+        </div>
+    </section>
+
+    <script th:fragment="scripts">
+        // 初始化工具提示
+        document.addEventListener('DOMContentLoaded', function() {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
+        
+        function disableFarmer(farmerId) {
+            const Toast = {
+                show(message, type = 'success') {
+                    const toastContainer = document.getElementById('toast-container') || (() => {
+                        const container = document.createElement('div');
+                        container.id = 'toast-container';
+                        container.className = 'position-fixed bottom-0 end-0 p-3';
+                        container.style.zIndex = '1050';
+                        document.body.appendChild(container);
+                        return container;
+                    })();
+                    
+                    const toastId = 'toast-' + Date.now();
+                    const toastEl = document.createElement('div');
+                    toastEl.className = `toast align-items-center text-white bg-${type} border-0`;
+                    toastEl.id = toastId;
+                    toastEl.setAttribute('role', 'alert');
+                    toastEl.setAttribute('aria-live', 'assertive');
+                    toastEl.setAttribute('aria-atomic', 'true');
+                    
+                    toastEl.innerHTML = `
+                        <div class="d-flex">
+                            <div class="toast-body">
+                                <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+                                ${message}
+                            </div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                    `;
+                    
+                    toastContainer.appendChild(toastEl);
+                    const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+                    toast.show();
+                    
+                    toastEl.addEventListener('hidden.bs.toast', () => {
+                        toastEl.remove();
+                    });
+                }
+            };
+            
+            if (confirm('确定要禁用该农户吗？禁用后该农户将无法登录系统。')) {
+                fetch(`/admin/farmers/review/${farmerId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: 'approved=false'
+                })
+                .then(response => response.text())
+                .then(result => {
+                    Toast.show(result, result.includes('成功') ? 'success' : 'danger');
+                    if (result.includes('成功')) {
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1500);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Toast.show('操作失败，请重试', 'danger');
+                });
+            }
+        }
+    </script>
+    
+    <style th:fragment="styles">
+        .avatar-placeholder {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: var(--primary-light);
+            color: var(--primary-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 3rem 1rem;
+            background-color: #fff;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            margin-bottom: 1.5rem;
+        }
+        
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.7;
+        }
+        
+        .empty-state-text {
+            font-size: 1.25rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        
+        .empty-state-subtext {
+            color: #6c757d;
+            margin-bottom: 1.5rem;
+            max-width: 500px;
+        }
+        
+        .nav-tabs .nav-link {
+            color: var(--text-color);
+            padding: 0.75rem 1rem;
+            border: none;
+            border-bottom: 2px solid transparent;
+            transition: var(--transition);
+        }
+        
+        .nav-tabs .nav-link:hover:not(.active) {
+            border-color: var(--primary-light);
+            background-color: var(--primary-light);
+            color: var(--primary-dark);
+        }
+        
+        .nav-tabs .nav-link.active {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+            background-color: transparent;
+            font-weight: 600;
+        }
+        
+        .table td {
+            vertical-align: middle;
+        }
+        
+        .badge {
+            font-weight: 500;
+            padding: 0.35em 0.65em;
+        }
+    </style>
+</body>
+</html> 

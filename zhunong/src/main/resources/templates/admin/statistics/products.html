@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      th:replace="~{layout/base :: layout(~{::title}, ~{::section})}">
+<head>
+    <meta charset="UTF-8">
+    <title>商品统计分析 - 暖心助农选品平台</title>
+    <script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.4.2/echarts.min.js"></script>
+</head>
+<body>
+    <section>
+        <!-- 页面标题 -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+            <div>
+                <h2 class="mb-1 d-flex align-items-center">
+                    <i class="bi bi-box-seam me-2 text-success"></i>商品统计分析
+                </h2>
+                <p class="text-muted mb-0">查看平台商品数据和销售情况</p>
+            </div>
+            
+            <div class="d-flex mt-3 mt-md-0">
+                <div class="btn-group">
+                    <a th:href="@{/admin/statistics}" class="btn btn-outline-success">概览</a>
+                    <a th:href="@{/admin/statistics/farmers}" class="btn btn-outline-success">农户分析</a>
+                    <a th:href="@{/admin/statistics/products}" class="btn btn-success active">商品分析</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 数据卡片 -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-success bg-opacity-10 p-3 rounded-circle me-3">
+                                <i class="bi bi-box-seam text-success fs-4"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0 text-muted">商品总数</h6>
+                                <h3 class="mb-0" th:text="${statistics.productCount}">0</h3>
+                            </div>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: 75%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-warning bg-opacity-10 p-3 rounded-circle me-3">
+                                <i class="bi bi-hourglass-split text-warning fs-4"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0 text-muted">待审核商品</h6>
+                                <h3 class="mb-0" th:text="${statistics.pendingProductCount}">0</h3>
+                            </div>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-warning" role="progressbar" style="width: 45%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-primary bg-opacity-10 p-3 rounded-circle me-3">
+                                <i class="bi bi-tags text-primary fs-4"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0 text-muted">商品类别</h6>
+                                <h3 class="mb-0" th:text="${#maps.size(statistics.productsByCategory)}">0</h3>
+                            </div>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: 65%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-info bg-opacity-10 p-3 rounded-circle me-3">
+                                <i class="bi bi-award text-info fs-4"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0 text-muted">销量最高</h6>
+                                <h3 class="mb-0" th:if="${not #lists.isEmpty(statistics.topSellingProducts)}" 
+                                    th:text="${statistics.topSellingProducts[0].salesCount}">0</h3>
+                                <h3 class="mb-0" th:if="${#lists.isEmpty(statistics.topSellingProducts)}">0</h3>
+                            </div>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-info" role="progressbar" style="width: 30%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 图表区域 -->
+        <div class="row g-4">
+            <!-- 商品类别分布 -->
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h5 class="mb-0">商品类别分布</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="productCategoryChart" style="height: 400px;"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 商品销量排行 -->
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h5 class="mb-0">商品销量排行</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="productSalesChart" style="height: 400px;"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 销量前10的商品 -->
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h5 class="mb-0">销量前10的商品</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>排名</th>
+                                        <th>商品名称</th>
+                                        <th>农户</th>
+                                        <th>价格</th>
+                                        <th>销量</th>
+                                        <th>库存</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="product, stat : ${statistics.topSellingProducts}">
+                                        <td th:text="${stat.count}">1</td>
+                                        <td th:text="${product.name}">商品名称</td>
+                                        <td th:text="${product.farmerName}">农户</td>
+                                        <td th:text="${'￥' + product.price}">价格</td>
+                                        <td th:text="${product.salesCount}">销量</td>
+                                        <td>
+                                            <span class="badge bg-success" th:if="${product.stock > 20}">充足</span>
+                                            <span class="badge bg-warning" th:if="${product.stock <= 20 && product.stock > 5}">适中</span>
+                                            <span class="badge bg-danger" th:if="${product.stock <= 5}">紧缺</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 图表初始化脚本 -->
+        <script th:inline="javascript">
+            document.addEventListener('DOMContentLoaded', function() {
+                // 获取统计数据
+                const statistics = /*[[${statistics}]]*/ {};
+                
+                // 初始化商品类别分布图
+                initProductCategoryChart(statistics.productsByCategory || {});
+                
+                // 初始化商品销量排行图
+                initProductSalesChart(statistics.topSellingProducts || []);
+            });
+            
+            // 初始化商品类别分布图
+            function initProductCategoryChart(data) {
+                const chart = echarts.init(document.getElementById('productCategoryChart'));
+                
+                const categories = Object.keys(data);
+                const values = categories.map(category => data[category]);
+                
+                const option = {
+                    tooltip: {
+                        trigger: 'item',
+                        formatter: '{a} <br/>{b}: {c} ({d}%)'
+                    },
+                    legend: {
+                        orient: 'vertical',
+                        right: 10,
+                        top: 'center',
+                        data: categories
+                    },
+                    color: ['#2ecc71', '#3498db', '#9b59b6', '#f1c40f', '#e67e22', '#95a5a6'],
+                    series: [
+                        {
+                            name: '商品类别',
+                            type: 'pie',
+                            radius: ['40%', '70%'],
+                            avoidLabelOverlap: false,
+                            itemStyle: {
+                                borderRadius: 10,
+                                borderColor: '#fff',
+                                borderWidth: 2
+                            },
+                            label: {
+                                show: false,
+                                position: 'center'
+                            },
+                            emphasis: {
+                                label: {
+                                    show: true,
+                                    fontSize: '16',
+                                    fontWeight: 'bold'
+                                }
+                            },
+                            labelLine: {
+                                show: false
+                            },
+                            data: categories.map((category, index) => {
+                                return {
+                                    value: values[index],
+                                    name: category
+                                };
+                            })
+                        }
+                    ]
+                };
+                
+                chart.setOption(option);
+                
+                window.addEventListener('resize', function() {
+                    chart.resize();
+                });
+            }
+            
+            // 初始化商品销量排行图
+            function initProductSalesChart(data) {
+                const chart = echarts.init(document.getElementById('productSalesChart'));
+                
+                // 限制最多显示5个商品
+                const limitedData = data.slice(0, 5);
+                
+                // 提取商品名称和销量
+                const productNames = limitedData.map(item => item.name);
+                const salesCounts = limitedData.map(item => item.salesCount);
+                
+                const option = {
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {
+                            type: 'shadow'
+                        }
+                    },
+                    grid: {
+                        left: '3%',
+                        right: '4%',
+                        bottom: '3%',
+                        containLabel: true
+                    },
+                    xAxis: {
+                        type: 'value'
+                    },
+                    yAxis: {
+                        type: 'category',
+                        data: productNames.reverse(),
+                        axisLabel: {
+                            formatter: function(value) {
+                                if (value.length > 10) {
+                                    return value.substring(0, 10) + '...';
+                                }
+                                return value;
+                            }
+                        }
+                    },
+                    series: [
+                        {
+                            name: '销量',
+                            type: 'bar',
+                            data: salesCounts.reverse(),
+                            itemStyle: {
+                                color: new echarts.graphic.LinearGradient(1, 0, 0, 0, [
+                                    { offset: 0, color: '#83c44e' },
+                                    { offset: 1, color: '#5cb85c' }
+                                ])
+                            }
+                        }
+                    ]
+                };
+                
+                chart.setOption(option);
+                
+                window.addEventListener('resize', function() {
+                    chart.resize();
+                });
+            }
+        </script>
+    </section>
+</body>
+</html>

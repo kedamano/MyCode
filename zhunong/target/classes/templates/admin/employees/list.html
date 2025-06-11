@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      th:replace="~{layout/base :: layout(~{::title}, ~{::section})}">
+<head>
+    <title>职工列表 - 暖心助农选品平台</title>
+</head>
+<body>
+    <section>
+        <!-- 页面标题 -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+            <div>
+                <h2 class="mb-1 d-flex align-items-center">
+                    <i class="bi bi-people me-2 text-primary"></i>职工列表
+                </h2>
+                <p class="text-muted mb-0">管理平台职工账户信息</p>
+            </div>
+            <div class="mt-3 mt-md-0">
+                <a th:href="@{/admin/employees/add}" class="btn btn-primary">
+                    <i class="bi bi-person-plus me-1"></i>创建职工账户
+                </a>
+            </div>
+        </div>
+        
+        <!-- 职工列表 -->
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>用户名</th>
+                                <th>真实姓名</th>
+                                <th>联系电话</th>
+                                <th>邮箱</th>
+                                <th>地址</th>
+                                <th>账户余额</th>
+                                <th>创建时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="employee : ${employees.records}">
+                                <td th:text="${employee.username}">用户名</td>
+                                <td th:text="${employee.realName}">真实姓名</td>
+                                <td th:text="${employee.phone}">联系电话</td>
+                                <td th:text="${employee.email}">邮箱</td>
+                                <td th:text="${employee.address}">地址</td>
+                                <td>
+                                    <span class="fw-bold text-primary" th:if="${employee.account != null}" th:text="'￥' + ${employee.account.balance}">账户余额</span>
+                                    <span class="badge bg-secondary" th:if="${employee.account == null}">未开通账户</span>
+                                </td>
+                                <td>
+                                    <span th:text="${#temporals.format(employee.createTime, 'yyyy-MM-dd')}" class="d-block">日期</span>
+                                    <small class="text-muted" th:text="${#temporals.format(employee.createTime, 'HH:mm')}">时间</small>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <form th:action="@{/admin/account/recharge-form}" method="get" style="display: inline;">
+                                            <input type="hidden" name="employeeId" th:value="${employee.id}">
+                                            <input type="hidden" name="employeeName" th:value="${employee.realName}">
+                                            <button type="submit" class="btn btn-outline-primary">
+                                                <i class="bi bi-cash-coin me-1"></i>充值
+                                            </button>
+                                        </form>
+                                        <form th:action="@{/admin/employees/status/{id}(id=${employee.id})}" method="post" style="display: inline; margin-left: 5px;" th:if="${employee.status == 1}">
+                                            <input type="hidden" name="status" value="2">
+                                            <button type="submit" class="btn btn-outline-danger" onclick="return confirm('确定要禁用该职工账户吗？')">
+                                                <i class="bi bi-x-circle me-1"></i>禁用
+                                            </button>
+                                        </form>
+                                        <form th:action="@{/admin/employees/status/{id}(id=${employee.id})}" method="post" style="display: inline; margin-left: 5px;" th:if="${employee.status == 2}">
+                                            <input type="hidden" name="status" value="1">
+                                            <button type="submit" class="btn btn-outline-success" onclick="return confirm('确定要启用该职工账户吗？')">
+                                                <i class="bi bi-check-circle me-1"></i>启用
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- 分页 -->
+            <div class="card-footer bg-white" th:if="${not #lists.isEmpty(employees.records)}">
+                <div th:replace="~{layout/pagination :: pagination('/admin/employees/list', ${employees}, 10, '')}"></div>
+            </div>
+        </div>
+
+        <!-- 显示消息提示 -->
+        <div th:if="${message != null}" class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+            <span th:text="${message}">操作成功</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <div th:if="${error != null}" class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+            <span th:text="${error}">操作失败</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </section>
+    
+    <script th:fragment="scripts">
+        document.addEventListener('DOMContentLoaded', function() {
+            // 为充值按钮添加事件监听
+            document.querySelectorAll('form[action="/admin/account/recharge-form"]').forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const employeeId = this.querySelector('input[name="employeeId"]').value;
+                    const employeeName = this.querySelector('input[name="employeeName"]').value;
+                    
+                    // 使用axios跳转到充值页面
+                    window.location.href = `/admin/account/recharge-form?employeeId=${employeeId}&employeeName=${employeeName}`;
+                });
+            });
+            
+            // 为禁用和启用按钮添加事件监听
+            document.querySelectorAll('form[action^="/admin/employees/status/"]').forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const statusValue = this.querySelector('input[name="status"]').value;
+                    const isDisable = statusValue === '2';
+                    const message = isDisable ? '确定要禁用该职工账户吗？' : '确定要启用该职工账户吗？';
+                    
+                    if (confirm(message)) {
+                        const url = this.getAttribute('action');
+                        const formData = new FormData(this);
+                        
+                        http.post(url, formData)
+                            .then(response => {
+                                showToast(isDisable ? '已成功禁用职工账户' : '已成功启用职工账户', 'success');
+                                setTimeout(() => {
+                                    window.location.reload();
+                                }, 1500);
+                            })
+                            .catch(error => {
+                                console.error('操作失败:', error);
+                            });
+                    }
+                });
+            });
+            
+            // 自动关闭提示框
+            setTimeout(function() {
+                const alerts = document.querySelectorAll('.alert');
+                alerts.forEach(function(alert) {
+                    if (typeof bootstrap !== 'undefined') {
+                        const bsAlert = new bootstrap.Alert(alert);
+                        bsAlert.close();
+                    } else {
+                        alert.style.display = 'none';
+                    }
+                });
+            }, 3000);
+        });
+    </script>
+</body>
+</html> 

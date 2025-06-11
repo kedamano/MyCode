@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <!-- 基础图表容器 -->
+    <div th:fragment="chart-container(title, icon, chartId)" class="chart-container">
+        <h5 class="chart-title">
+            <i th:class="${'bi bi-' + icon}"></i>
+            <span th:text="${title}">图表标题</span>
+        </h5>
+        <div th:id="${chartId}" style="width: 100%; height: 350px;"></div>
+    </div>
+    
+    <!-- 条形图 -->
+    <div th:fragment="bar-chart(chartId, title, icon, xData, yData, color)">
+        <div th:replace="~{layout/chart :: chart-container(${title}, ${icon}, ${chartId})}"></div>
+        <script th:inline="javascript">
+            document.addEventListener('DOMContentLoaded', function() {
+                const chartDom = document.getElementById(/*[[${chartId}]]*/);
+                const myChart = echarts.init(chartDom);
+                
+                const xData = /*[[${xData}]]*/[];
+                const yData = /*[[${yData}]]*/[];
+                const color = /*[[${color}]]*/ '#2ecc71';
+                
+                const option = {
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: { type: 'shadow' }
+                    },
+                    grid: {
+                        left: '3%',
+                        right: '4%',
+                        bottom: '3%',
+                        containLabel: true
+                    },
+                    xAxis: {
+                        type: 'category',
+                        data: xData,
+                        axisLine: { lineStyle: { color: '#eaeaea' } },
+                        axisLabel: { color: '#7f8c8d' }
+                    },
+                    yAxis: {
+                        type: 'value',
+                        axisLine: { show: false },
+                        axisLabel: { color: '#7f8c8d' },
+                        splitLine: { lineStyle: { color: '#eaeaea', type: 'dashed' } }
+                    },
+                    series: [{
+                        data: yData,
+                        type: 'bar',
+                        barWidth: '60%',
+                        itemStyle: {
+                            color: color,
+                            borderRadius: [4, 4, 0, 0]
+                        },
+                        emphasis: {
+                            itemStyle: {
+                                color: '#27ae60'
+                            }
+                        },
+                        animation: true
+                    }],
+                    animationDuration: 1000
+                };
+                
+                // 设置暗色模式
+                if (document.body.classList.contains('dark-mode')) {
+                    option.xAxis.axisLine.lineStyle.color = '#444';
+                    option.xAxis.axisLabel.color = '#bdc3c7';
+                    option.yAxis.axisLabel.color = '#bdc3c7';
+                    option.yAxis.splitLine.lineStyle.color = '#444';
+                }
+                
+                myChart.setOption(option);
+                
+                // 响应窗口大小变化
+                window.addEventListener('resize', function() {
+                    myChart.resize();
+                });
+                
+                // 响应主题变化
+                document.getElementById('theme-toggle')?.addEventListener('click', function() {
+                    setTimeout(function() {
+                        myChart.dispose();
+                        const newChart = echarts.init(chartDom);
+                        
+                        if (document.body.classList.contains('dark-mode')) {
+                            option.xAxis.axisLine.lineStyle.color = '#444';
+                            option.xAxis.axisLabel.color = '#bdc3c7';
+                            option.yAxis.axisLabel.color = '#bdc3c7';
+                            option.yAxis.splitLine.lineStyle.color = '#444';
+                        } else {
+                            option.xAxis.axisLine.lineStyle.color = '#eaeaea';
+                            option.xAxis.axisLabel.color = '#7f8c8d';
+                            option.yAxis.axisLabel.color = '#7f8c8d';
+                            option.yAxis.splitLine.lineStyle.color = '#eaeaea';
+                        }
+                        
+                        newChart.setOption(option);
+                    }, 200);
+                });
+            });
+        </script>
+    </div>
+    
+    <!-- 饼图 -->
+    <div th:fragment="pie-chart(chartId, title, icon, data, colors)">
+        <div th:replace="~{layout/chart :: chart-container(${title}, ${icon}, ${chartId})}"></div>
+        <script th:inline="javascript">
+            document.addEventListener('DOMContentLoaded', function() {
+                const chartDom = document.getElementById(/*[[${chartId}]]*/);
+                const myChart = echarts.init(chartDom);
+                
+                const data = /*[[${data}]]*/[];
+                const defaultColors = ['#2ecc71', '#3498db', '#f1c40f', '#e74c3c', '#9b59b6', '#1abc9c'];
+                const colors = /*[[${colors}]]*/ defaultColors;
+                
+                const option = {
+                    tooltip: {
+                        trigger: 'item',
+                        formatter: '{a} <br/>{b}: {c} ({d}%)'
+                    },
+                    legend: {
+                        orient: 'vertical',
+                        right: 10,
+                        top: 'center',
+                        textStyle: {
+                            color: '#7f8c8d'
+                        }
+                    },
+                    series: [
+                        {
+                            name: /*[[${title}]]*/'',
+                            type: 'pie',
+                            radius: ['50%', '70%'],
+                            avoidLabelOverlap: false,
+                            itemStyle: {
+                                borderRadius: 8,
+                                borderColor: '#fff',
+                                borderWidth: 2
+                            },
+                            label: {
+                                show: false,
+                                position: 'center'
+                            },
+                            emphasis: {
+                                label: {
+                                    show: true,
+                                    fontSize: '16',
+                                    fontWeight: 'bold'
+                                }
+                            },
+                            labelLine: {
+                                show: false
+                            },
+                            data: data,
+                            color: colors
+                        }
+                    ],
+                    animationDuration: 1000
+                };
+                
+                // 设置暗色模式
+                if (document.body.classList.contains('dark-mode')) {
+                    option.legend.textStyle.color = '#bdc3c7';
+                    option.series[0].itemStyle.borderColor = '#222222';
+                }
+                
+                myChart.setOption(option);
+                
+                // 响应窗口大小变化
+                window.addEventListener('resize', function() {
+                    myChart.resize();
+                });
+                
+                // 响应主题变化
+                document.getElementById('theme-toggle')?.addEventListener('click', function() {
+                    setTimeout(function() {
+                        myChart.dispose();
+                        const newChart = echarts.init(chartDom);
+                        
+                        if (document.body.classList.contains('dark-mode')) {
+                            option.legend.textStyle.color = '#bdc3c7';
+                            option.series[0].itemStyle.borderColor = '#222222';
+                        } else {
+                            option.legend.textStyle.color = '#7f8c8d';
+                            option.series[0].itemStyle.borderColor = '#fff';
+                        }
+                        
+                        newChart.setOption(option);
+                    }, 200);
+                });
+            });
+        </script>
+    </div>
+    
+    <!-- 折线图 -->
+    <div th:fragment="line-chart(chartId, title, icon, xData, yData, color)">
+        <div th:replace="~{layout/chart :: chart-container(${title}, ${icon}, ${chartId})}"></div>
+        <script th:inline="javascript">
+            document.addEventListener('DOMContentLoaded', function() {
+                const chartDom = document.getElementById(/*[[${chartId}]]*/);
+                const myChart = echarts.init(chartDom);
+                
+                const xData = /*[[${xData}]]*/[];
+                const yData = /*[[${yData}]]*/[];
+                const color = /*[[${color}]]*/ '#2ecc71';
+                
+                const option = {
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {
+                            type: 'line',
+                            lineStyle: {
+                                color: color,
+                                width: 1,
+                                type: 'dashed'
+                            }
+                        }
+                    },
+                    grid: {
+                        left: '3%',
+                        right: '4%',
+                        bottom: '3%',
+                        containLabel: true
+                    },
+                    xAxis: {
+                        type: 'category',
+                        boundaryGap: false,
+                        data: xData,
+                        axisLine: { lineStyle: { color: '#eaeaea' } },
+                        axisLabel: { color: '#7f8c8d' }
+                    },
+                    yAxis: {
+                        type: 'value',
+                        axisLine: { show: false },
+                        axisLabel: { color: '#7f8c8d' },
+                        splitLine: { lineStyle: { color: '#eaeaea', type: 'dashed' } }
+                    },
+                    series: [
+                        {
+                            type: 'line',
+                            data: yData,
+                            smooth: true,
+                            symbol: 'emptyCircle',
+                            symbolSize: 8,
+                            itemStyle: {
+                                color: color
+                            },
+                            lineStyle: {
+                                width: 3,
+                                color: color
+                            },
+                            areaStyle: {
+                                color: {
+                                    type: 'linear',
+                                    x: 0,
+                                    y: 0,
+                                    x2: 0,
+                                    y2: 1,
+                                    colorStops: [
+                                        { offset: 0, color: color + 'AA' },
+                                        { offset: 1, color: color + '11' }
+                                    ]
+                                }
+                            },
+                            emphasis: {
+                                focus: 'series',
+                                itemStyle: {
+                                    borderWidth: 2,
+                                    shadowBlur: 10,
+                                    shadowColor: color + '80'
+                                }
+                            }
+                        }
+                    ],
+                    animationDuration: 1500
+                };
+                
+                // 设置暗色模式
+                if (document.body.classList.contains('dark-mode')) {
+                    option.xAxis.axisLine.lineStyle.color = '#444';
+                    option.xAxis.axisLabel.color = '#bdc3c7';
+                    option.yAxis.axisLabel.color = '#bdc3c7';
+                    option.yAxis.splitLine.lineStyle.color = '#444';
+                }
+                
+                myChart.setOption(option);
+                
+                // 响应窗口大小变化
+                window.addEventListener('resize', function() {
+                    myChart.resize();
+                });
+                
+                // 响应主题变化
+                document.getElementById('theme-toggle')?.addEventListener('click', function() {
+                    setTimeout(function() {
+                        myChart.dispose();
+                        const newChart = echarts.init(chartDom);
+                        
+                        if (document.body.classList.contains('dark-mode')) {
+                            option.xAxis.axisLine.lineStyle.color = '#444';
+                            option.xAxis.axisLabel.color = '#bdc3c7';
+                            option.yAxis.axisLabel.color = '#bdc3c7';
+                            option.yAxis.splitLine.lineStyle.color = '#444';
+                        } else {
+                            option.xAxis.axisLine.lineStyle.color = '#eaeaea';
+                            option.xAxis.axisLabel.color = '#7f8c8d';
+                            option.yAxis.axisLabel.color = '#7f8c8d';
+                            option.yAxis.splitLine.lineStyle.color = '#eaeaea';
+                        }
+                        
+                        newChart.setOption(option);
+                    }, 200);
+                });
+            });
+        </script>
+    </div>
+</body>
+</html> 

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <!-- 基础统计卡片 -->
+    <div th:fragment="stat-card(title, value, description, icon, color)" class="stat-card" th:style="${'border-left-color: ' + color}">
+        <div class="stat-icon" th:style="${'color: ' + color}">
+            <i th:class="${'bi bi-' + icon}"></i>
+        </div>
+        <div class="stat-value" th:text="${value}">0</div>
+        <div class="stat-title" th:text="${title}">标题</div>
+        <div class="stat-desc" th:text="${description}">描述信息</div>
+    </div>
+    
+    <!-- 订单统计卡片 -->
+    <div th:fragment="order-stats(todayOrders, totalOrders, pendingOrders, completedOrders)" class="row g-3 mb-4">
+        <div class="col-md-6 col-lg-3">
+            <div th:replace="~{layout/stats :: stat-card('今日订单', ${todayOrders}, '今日新增的订单数量', 'calendar-check', '#2ecc71')}"></div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div th:replace="~{layout/stats :: stat-card('总订单', ${totalOrders}, '系统中的总订单数', 'basket', '#3498db')}"></div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div th:replace="~{layout/stats :: stat-card('待处理', ${pendingOrders}, '等待处理的订单数量', 'hourglass-split', '#f1c40f')}"></div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div th:replace="~{layout/stats :: stat-card('已完成', ${completedOrders}, '已完成的订单数量', 'check-circle', '#27ae60')}"></div>
+        </div>
+    </div>
+    
+    <!-- 产品统计卡片 -->
+    <div th:fragment="product-stats(totalProducts, pendingProducts, approvedProducts, outOfStock)" class="row g-3 mb-4">
+        <div class="col-md-6 col-lg-3">
+            <div th:replace="~{layout/stats :: stat-card('总商品', ${totalProducts}, '系统中的商品总数', 'box-seam', '#3498db')}"></div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div th:replace="~{layout/stats :: stat-card('待审核', ${pendingProducts}, '等待审核的商品数量', 'hourglass-split', '#f1c40f')}"></div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div th:replace="~{layout/stats :: stat-card('已上线', ${approvedProducts}, '已上线的商品数量', 'check-circle', '#2ecc71')}"></div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div th:replace="~{layout/stats :: stat-card('库存不足', ${outOfStock}, '库存不足的商品数量', 'exclamation-triangle', '#e74c3c')}"></div>
+        </div>
+    </div>
+    
+    <!-- 用户统计卡片 -->
+    <div th:fragment="user-stats(totalUsers, totalEmployees, totalFarmers, newUsers)" class="row g-3 mb-4">
+        <div class="col-md-6 col-lg-3">
+            <div th:replace="~{layout/stats :: stat-card('总用户', ${totalUsers}, '系统中的用户总数', 'people', '#3498db')}"></div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div th:replace="~{layout/stats :: stat-card('职工数', ${totalEmployees}, '注册的职工用户数', 'person-badge', '#2ecc71')}"></div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div th:replace="~{layout/stats :: stat-card('农户数', ${totalFarmers}, '注册的农户用户数', 'person-bounding-box', '#f1c40f')}"></div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div th:replace="~{layout/stats :: stat-card('新增用户', ${newUsers}, '本月新增的用户数', 'person-plus', '#9b59b6')}"></div>
+        </div>
+    </div>
+    
+    <!-- 收入统计卡片 -->
+    <div th:fragment="income-stats(todayIncome, monthIncome, totalIncome, avgOrderValue)" class="row g-3 mb-4">
+        <div class="col-md-6 col-lg-3">
+            <div th:replace="~{layout/stats :: stat-card('今日收入', ${todayIncome}, '今日订单总收入', 'currency-yen', '#2ecc71')}"></div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div th:replace="~{layout/stats :: stat-card('本月收入', ${monthIncome}, '本月订单总收入', 'calendar-month', '#3498db')}"></div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div th:replace="~{layout/stats :: stat-card('总收入', ${totalIncome}, '系统总订单收入', 'cash-stack', '#f1c40f')}"></div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div th:replace="~{layout/stats :: stat-card('平均订单', ${avgOrderValue}, '订单平均金额', 'graph-up-arrow', '#9b59b6')}"></div>
+        </div>
+    </div>
+    
+    <!-- 统计数据展示区 -->
+    <div th:fragment="dashboard-stats(title, subtitle)" class="dashboard-stats mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h4 class="mb-0" th:text="${title}">统计标题</h4>
+                <p class="text-muted mb-0" th:text="${subtitle}">统计副标题</p>
+            </div>
+            <div class="btn-group">
+                <button type="button" class="btn btn-outline-primary active">今日</button>
+                <button type="button" class="btn btn-outline-primary">本周</button>
+                <button type="button" class="btn btn-outline-primary">本月</button>
+                <button type="button" class="btn btn-outline-primary">全部</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

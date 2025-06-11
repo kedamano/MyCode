@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      th:replace="~{layout/base :: layout(~{::title}, ~{::section})}">
+<head>
+    <title>农户详情 - 暖心助农选品平台</title>
+</head>
+<body>
+    <section>
+        <!-- 页面标题 -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+            <div>
+                <h2 class="mb-1 d-flex align-items-center">
+                    <i class="bi bi-person-vcard me-2 text-primary"></i>农户详情
+                </h2>
+                <p class="text-muted mb-0">查看农户的详细信息</p>
+            </div>
+            <div class="mt-3 mt-md-0">
+                <a th:href="@{/admin/farmers/approved}" class="btn btn-outline-primary">
+                    <i class="bi bi-arrow-left me-1"></i>返回列表
+                </a>
+            </div>
+        </div>
+        
+        <!-- 农户详细信息卡片 -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">基本信息</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label text-muted">用户名</label>
+                            <div class="form-control-plaintext" th:text="${farmer.username}">用户名</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label text-muted">真实姓名</label>
+                            <div class="form-control-plaintext" th:text="${farmer.realName}">真实姓名</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label text-muted">联系电话</label>
+                            <div class="form-control-plaintext" th:text="${farmer.phone}">联系电话</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label text-muted">电子邮箱</label>
+                            <div class="form-control-plaintext" th:text="${farmer.email}">电子邮箱</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label text-muted">地区</label>
+                            <div class="form-control-plaintext" th:text="${farmer.address}">地区</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label text-muted">注册时间</label>
+                            <div class="form-control-plaintext" th:text="${farmer.createTime}">注册时间</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label text-muted">账户状态</label>
+                            <div class="form-control-plaintext">
+                                <span class="badge" th:classappend="${farmer.status == 0 ? 'bg-warning' : (farmer.status == 1 ? 'bg-success' : 'bg-danger')}" 
+                                      th:text="${farmer.status == 0 ? '待审核' : (farmer.status == 1 ? '已审核' : '已禁用')}">状态</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-white">
+                <div class="d-flex justify-content-end gap-2">
+                    <a th:href="@{/admin/farmers/approved}" class="btn btn-outline-secondary">返回列表</a>
+                    <button th:if="${farmer.status == 1}" class="btn btn-danger" th:onclick="'disableFarmer(' + ${farmer.id} + ')'">
+                        <i class="bi bi-slash-circle me-1"></i>禁用账户
+                    </button>
+                    <button th:if="${farmer.status == 2}" class="btn btn-success" th:onclick="'enableFarmer(' + ${farmer.id} + ')'">
+                        <i class="bi bi-check-circle me-1"></i>启用账户
+                    </button>
+                    <button th:if="${farmer.status == 0}" class="btn btn-primary" th:onclick="'approveFarmer(' + ${farmer.id} + ')'">
+                        <i class="bi bi-check-circle me-1"></i>通过审核
+                    </button>
+                    <button th:if="${farmer.status == 0}" class="btn btn-danger" th:onclick="'rejectFarmer(' + ${farmer.id} + ')'">
+                        <i class="bi bi-x-circle me-1"></i>拒绝审核
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 农户商品列表 -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">农户商品</h5>
+            </div>
+            <div class="card-body">
+                <!-- 这里可以添加该农户的商品列表，如果需要的话 -->
+                <p class="text-muted text-center py-4">暂未实现农户商品列表展示</p>
+            </div>
+        </div>
+    </section>
+
+    <script th:fragment="scripts">
+        // 初始化工具提示
+        document.addEventListener('DOMContentLoaded', function() {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
+        
+        // Toast通知函数
+        const Toast = {
+            show(message, type = 'success') {
+                const toastContainer = document.getElementById('toast-container') || (() => {
+                    const container = document.createElement('div');
+                    container.id = 'toast-container';
+                    container.className = 'position-fixed bottom-0 end-0 p-3';
+                    container.style.zIndex = '1050';
+                    document.body.appendChild(container);
+                    return container;
+                })();
+                
+                const toastId = 'toast-' + Date.now();
+                const toastEl = document.createElement('div');
+                toastEl.className = `toast align-items-center text-white bg-${type} border-0`;
+                toastEl.id = toastId;
+                toastEl.setAttribute('role', 'alert');
+                toastEl.setAttribute('aria-live', 'assertive');
+                toastEl.setAttribute('aria-atomic', 'true');
+                
+                toastEl.innerHTML = `
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+                            ${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                `;
+                
+                toastContainer.appendChild(toastEl);
+                const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+                toast.show();
+                
+                toastEl.addEventListener('hidden.bs.toast', () => {
+                    toastEl.remove();
+                });
+            }
+        };
+        
+        // 禁用农户
+        function disableFarmer(farmerId) {
+            if (confirm('确定要禁用该农户吗？禁用后该农户将无法登录系统。')) {
+                fetch(`/admin/farmers/review/${farmerId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: 'approved=false'
+                })
+                .then(response => response.text())
+                .then(result => {
+                    Toast.show(result, result.includes('成功') ? 'success' : 'danger');
+                    if (result.includes('成功')) {
+                        setTimeout(() => {
+                            location.href = '/admin/farmers/disabled';
+                        }, 1500);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Toast.show('操作失败，请重试', 'danger');
+                });
+            }
+        }
+        
+        // 启用农户
+        function enableFarmer(farmerId) {
+            if (confirm('确定要启用该农户吗？启用后该农户将可以正常登录系统。')) {
+                fetch(`/admin/farmers/review/${farmerId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: 'approved=true'
+                })
+                .then(response => response.text())
+                .then(result => {
+                    Toast.show(result, result.includes('成功') ? 'success' : 'danger');
+                    if (result.includes('成功')) {
+                        setTimeout(() => {
+                            location.href = '/admin/farmers/approved';
+                        }, 1500);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Toast.show('操作失败，请重试', 'danger');
+                });
+            }
+        }
+        
+        // 通过审核
+        function approveFarmer(farmerId) {
+            if (confirm('确定要通过该农户的审核吗？')) {
+                fetch(`/admin/farmers/review/${farmerId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: 'approved=true'
+                })
+                .then(response => response.text())
+                .then(result => {
+                    Toast.show(result, result.includes('成功') ? 'success' : 'danger');
+                    if (result.includes('成功')) {
+                        setTimeout(() => {
+                            location.href = '/admin/farmers/approved';
+                        }, 1500);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Toast.show('操作失败，请重试', 'danger');
+                });
+            }
+        }
+        
+        // 拒绝审核
+        function rejectFarmer(farmerId) {
+            if (confirm('确定要拒绝该农户的审核吗？')) {
+                fetch(`/admin/farmers/review/${farmerId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: 'approved=false'
+                })
+                .then(response => response.text())
+                .then(result => {
+                    Toast.show(result, result.includes('成功') ? 'success' : 'danger');
+                    if (result.includes('成功')) {
+                        setTimeout(() => {
+                            location.href = '/admin/farmers/disabled';
+                        }, 1500);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Toast.show('操作失败，请重试', 'danger');
+                });
+            }
+        }
+    </script>
+</body>
+</html> 

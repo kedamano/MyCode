@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      th:replace="~{layout/base :: layout(~{::title}, ~{::section})}">
+<head>
+    <meta charset="UTF-8">
+    <title>农户信息维护 - 暖心助农选品平台</title>
+</head>
+<body>
+    <section>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="bi bi-person-vcard me-2"></i>农户信息维护
+            </h2>
+        </div>
+        
+        <div class="alert alert-success" th:if="${success}" role="alert">
+            <i class="bi bi-check-circle me-2"></i>农户信息更新成功！
+        </div>
+        
+        <div class="card">
+            <div class="card-body">
+                <form id="farmerProfileForm" th:action="@{/user/farmer/profile}" method="post" class="needs-validation" novalidate>
+                    <div class="mb-3">
+                        <label class="form-label">用户名</label>
+                        <input type="text" class="form-control" th:value="${user.username}" readonly>
+                        <div class="form-text">用户名不可修改</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">真实姓名</label>
+                        <input type="text" name="realName" id="realName" class="form-control" th:value="${user.realName}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">手机号</label>
+                        <input type="text" name="phone" id="phone" class="form-control" th:value="${user.phone}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">邮箱</label>
+                        <input type="email" name="email" id="email" class="form-control" th:value="${user.email}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">地址</label>
+                        <input type="text" name="address" id="address" class="form-control" th:value="${user.address}">
+                        <div class="form-text">请填写详细收款地址，方便平台结算</div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save me-2"></i>保存修改
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+    
+    <script th:fragment="scripts">
+        // 表单验证
+        document.addEventListener('DOMContentLoaded', function() {
+            const forms = document.querySelectorAll('.needs-validation');
+            Array.from(forms).forEach(form => {
+                form.addEventListener('submit', event => {
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+            
+            // 处理农户个人资料表单提交
+            const farmerProfileForm = document.getElementById('farmerProfileForm');
+            if (farmerProfileForm) {
+                farmerProfileForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    if (!this.checkValidity()) {
+                        this.classList.add('was-validated');
+                        return;
+                    }
+                    
+                    const formData = new URLSearchParams();
+                    formData.append('realName', document.getElementById('realName').value);
+                    formData.append('phone', document.getElementById('phone').value);
+                    formData.append('email', document.getElementById('email').value);
+                    formData.append('address', document.getElementById('address').value);
+                    formData.append('bankAccount', document.getElementById('bankAccount').value);
+                    
+                    http.post('/user/farmer/profile', formData)
+                        .then(response => {
+                            // 显示成功消息
+                            let successDiv = document.querySelector('.alert-success');
+                            if (!successDiv) {
+                                successDiv = document.createElement('div');
+                                successDiv.className = 'alert alert-success';
+                                successDiv.role = 'alert';
+                                successDiv.innerHTML = '<i class="bi bi-check-circle me-2"></i>农户信息更新成功！';
+                                const section = document.querySelector('section');
+                                section.insertBefore(successDiv, section.querySelector('.card'));
+                            } else {
+                                successDiv.style.display = 'block';
+                            }
+                            
+                            // 滚动到顶部以显示消息
+                            window.scrollTo({top: 0, behavior: 'smooth'});
+                        })
+                        .catch(error => {
+                            console.error('更新失败', error);
+                            // 显示错误消息
+                            const errorMessage = error.response?.data || '信息更新失败，请稍后重试';
+                            showToast(errorMessage, 'danger');
+                        });
+                });
+            }
+        });
+    </script>
+</body>
+</html> 

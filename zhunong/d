@@ -1,0 +1,113 @@
+esources	emplates\cart\view.html
+// 更新商品数量
+function updateQuantity(productId, delta, button) {
+    const row = button.closest('tr');
+    const quantityInput = row.querySelector('.quantity-input');
+    const currentQuantity = parseInt(quantityInput.value);
+    const newQuantity = currentQuantity + delta;
+    
+    if (newQuantity < 1) return;
+    
+    // 显示加载状态
+    button.disabled = true;
+    
+    // 显示处理中提示
+    showToast('正在更新商品数量...', 'info');
+    
+    // 使用fetch API发送请求
+    fetch(`/cart/update/${productId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: `delta=${delta}`,
+        credentials: 'same-origin'
+    })
+    .then(response => {
+        if (response.ok) {
+            showToast('商品数量已更新', 'success');
+            // 延迟刷新页面，让用户看到成功消息
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            return response.text().then(text => {
+                throw new Error(text || '更新商品数量失败');
+            });
+        }
+    })
+    .catch(error => {
+        console.error('更新商品数量失败:', error);
+        showToast('更新商品数量失败: ' + error.message, 'danger');
+        button.disabled = false;
+    });
+}
+
+// 从购物车移除商品
+function removeItem(productId) {
+    if (confirm('确定要从购物车中移除此商品吗？')) {
+        // 显示处理中提示
+        showToast('正在移除商品...', 'info');
+        
+        // 使用fetch API发送请求
+        fetch(`/cart/remove/${productId}`, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (response.ok) {
+                showToast('商品已从购物车中移除', 'success');
+                // 延迟刷新页面，让用户看到成功消息
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            } else {
+                return response.text().then(text => {
+                    throw new Error(text || '移除商品失败');
+                });
+            }
+        })
+        .catch(error => {
+            console.error('移除商品失败:', error);
+            showToast('移除商品失败: ' + error.message, 'danger');
+        });
+    }
+}
+
+// 清空购物车
+function clearCart() {
+    if (confirm('确定要清空购物车吗？此操作不可恢复！')) {
+        // 显示处理中提示
+        showToast('正在清空购物车...', 'info');
+        
+        // 使用fetch API发送请求
+        fetch('/cart/clear', {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (response.ok) {
+                showToast('购物车已清空', 'success');
+                // 延迟刷新页面，让用户看到成功消息
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            } else {
+                return response.text().then(text => {
+                    throw new Error(text || '清空购物车失败');
+                });
+            }
+        })
+        .catch(error => {
+            console.error('清空购物车失败:', error);
+            showToast('清空购物车失败: ' + error.message, 'danger');
+        });
+    }
+}

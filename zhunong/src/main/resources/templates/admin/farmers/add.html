@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      th:replace="~{layout/base :: layout(~{::title}, ~{::section})}">
+<head>
+    <title>添加农户 - 暖心助农选品平台</title>
+</head>
+<body>
+    <section>
+        <!-- 页面标题 -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+            <div>
+                <h2 class="mb-1 d-flex align-items-center">
+                    <i class="bi bi-person-plus me-2 text-primary"></i>添加农户
+                </h2>
+                <p class="text-muted mb-0">创建新的农户账户信息</p>
+            </div>
+            <div class="mt-3 mt-md-0">
+                <a th:href="@{/admin/farmers/approved}" class="btn btn-outline-primary">
+                    <i class="bi bi-arrow-left me-1"></i>返回农户列表
+                </a>
+            </div>
+        </div>
+        
+        <!-- 表单卡片 -->
+        <div class="card">
+            <div class="card-body">
+                <form id="farmerForm" th:action="@{/admin/farmers/save}" method="post" class="row g-3 needs-validation" novalidate>
+                    <!-- 基本信息 -->
+                    <div class="col-12">
+                        <h5 class="border-bottom pb-2 mb-3"><i class="bi bi-person me-2 text-primary"></i>基本信息</h5>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="username" class="form-label">用户名 <span class="text-danger">*</span></label>
+                        <div class="input-group has-validation">
+                            <span class="input-group-text"><i class="bi bi-person"></i></span>
+                            <input type="text" class="form-control" id="username" name="username" required minlength="4" maxlength="20">
+                            <div class="invalid-feedback">请输入4-20位有效用户名</div>
+                        </div>
+                        <small class="text-muted">用户名将用于登录系统，不可修改</small>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="password" class="form-label">初始密码 <span class="text-danger">*</span></label>
+                        <div class="input-group has-validation">
+                            <span class="input-group-text"><i class="bi bi-key"></i></span>
+                            <input type="password" class="form-control" id="password" name="password" required minlength="6">
+                            <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <div class="invalid-feedback">请设置至少6位的密码</div>
+                        </div>
+                        <small class="text-muted">初始密码将发送给农户，农户首次登录后可自行修改</small>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="realName" class="form-label">真实姓名 <span class="text-danger">*</span></label>
+                        <div class="input-group has-validation">
+                            <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
+                            <input type="text" class="form-control" id="realName" name="realName" required>
+                            <div class="invalid-feedback">请输入真实姓名</div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="phone" class="form-label">联系电话 <span class="text-danger">*</span></label>
+                        <div class="input-group has-validation">
+                            <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                            <input type="tel" class="form-control" id="phone" name="phone" required pattern="1[3-9]\d{9}">
+                            <div class="invalid-feedback">请输入有效的11位手机号码</div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="email" class="form-label">电子邮箱</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                            <input type="email" class="form-control" id="email" name="email">
+                            <div class="invalid-feedback">请输入有效的邮箱地址</div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="idCard" class="form-label">身份证号 <span class="text-danger">*</span></label>
+                        <div class="input-group has-validation">
+                            <span class="input-group-text"><i class="bi bi-credit-card"></i></span>
+                            <input type="text" class="form-control" id="idCard" name="idCard" required pattern="[1-9]\d{5}(19|20)\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\d{3}[\dX]">
+                            <div class="invalid-feedback">请输入有效的18位身份证号</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 地址信息 -->
+                    <div class="col-12 mt-4">
+                        <h5 class="border-bottom pb-2 mb-3"><i class="bi bi-geo-alt me-2 text-primary"></i>地址信息</h5>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label for="province" class="form-label">省份 <span class="text-danger">*</span></label>
+                        <select class="form-select" id="province" name="province" required>
+                            <option value="" selected disabled>请选择省份</option>
+                            <option value="北京市">北京市</option>
+                            <option value="河北省">河北省</option>
+                            <option value="山东省">山东省</option>
+                            <option value="河南省">河南省</option>
+                            <option value="江苏省">江苏省</option>
+                            <!-- 其他省份 -->
+                        </select>
+                        <div class="invalid-feedback">请选择省份</div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label for="city" class="form-label">城市 <span class="text-danger">*</span></label>
+                        <select class="form-select" id="city" name="city" required>
+                            <option value="" selected disabled>请先选择省份</option>
+                        </select>
+                        <div class="invalid-feedback">请选择城市</div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label for="district" class="form-label">区/县 <span class="text-danger">*</span></label>
+                        <select class="form-select" id="district" name="district" required>
+                            <option value="" selected disabled>请先选择城市</option>
+                        </select>
+                        <div class="invalid-feedback">请选择区/县</div>
+                    </div>
+                    
+                    <div class="col-md-12">
+                        <label for="address" class="form-label">详细地址 <span class="text-danger">*</span></label>
+                        <div class="input-group has-validation">
+                            <span class="input-group-text"><i class="bi bi-house"></i></span>
+                            <input type="text" class="form-control" id="address" name="address" required>
+                            <div class="invalid-feedback">请输入详细地址</div>
+                        </div>
+                        <small class="text-muted">请填写详细的街道、门牌号等信息</small>
+                    </div>
+                    
+                    <!-- 农户信息 -->
+                    <div class="col-12 mt-4">
+                        <h5 class="border-bottom pb-2 mb-3"><i class="bi bi-info-circle me-2 text-primary"></i>农户信息</h5>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="farmName" class="form-label">农场/基地名称</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-building"></i></span>
+                            <input type="text" class="form-control" id="farmName" name="farmName">
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="farmingType" class="form-label">种植/养殖类型</label>
+                        <select class="form-select" id="farmingType" name="farmingType">
+                            <option value="" selected>请选择类型</option>
+                            <option value="蔬菜种植">蔬菜种植</option>
+                            <option value="水果种植">水果种植</option>
+                            <option value="粮食作物">粮食作物</option>
+                            <option value="家禽养殖">家禽养殖</option>
+                            <option value="牲畜养殖">牲畜养殖</option>
+                            <option value="水产养殖">水产养殖</option>
+                            <option value="其他类型">其他类型</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-12">
+                        <label for="description" class="form-label">农户简介</label>
+                        <textarea class="form-control" id="description" name="description" rows="3" placeholder="简要描述农户的基本情况，如种植历史、规模、特色产品等"></textarea>
+                    </div>
+                    
+                    <!-- 提交按钮 -->
+                    <div class="col-12 mt-4 d-flex justify-content-between">
+                        <button type="button" class="btn btn-outline-secondary" onclick="window.history.back()">
+                            <i class="bi bi-x-circle me-1"></i>取消
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save me-1"></i>保存农户信息
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+    
+    <script th:fragment="scripts">
+        // 表单验证
+        document.addEventListener('DOMContentLoaded', function() {
+            // 表单验证
+            const forms = document.querySelectorAll('.needs-validation');
+            
+            Array.prototype.slice.call(forms).forEach(function(form) {
+                form.addEventListener('submit', function(event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    
+                    form.classList.add('was-validated');
+                }, false);
+            });
+            
+            // 密码显示切换
+            const togglePassword = document.getElementById('togglePassword');
+            const password = document.getElementById('password');
+            
+            togglePassword.addEventListener('click', function() {
+                const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+                password.setAttribute('type', type);
+                this.querySelector('i').classList.toggle('bi-eye');
+                this.querySelector('i').classList.toggle('bi-eye-slash');
+            });
+            
+            // 省市区级联
+            const province = document.getElementById('province');
+            const city = document.getElementById('city');
+            const district = document.getElementById('district');
+            
+            // 简化版的省市区数据，实际应从API获取
+            const regionData = {
+                '北京市': {
+                    '北京市': ['东城区', '西城区', '朝阳区', '海淀区', '丰台区']
+                },
+                '河北省': {
+                    '石家庄市': ['长安区', '桥西区', '新华区'],
+                    '保定市': ['莲池区', '竞秀区', '满城区'],
+                    '邯郸市': ['邯山区', '丛台区', '复兴区']
+                },
+                '山东省': {
+                    '济南市': ['历下区', '市中区', '槐荫区'],
+                    '青岛市': ['市南区', '市北区', '黄岛区'],
+                    '烟台市': ['芝罘区', '福山区', '牟平区']
+                }
+            };
+            
+            // 省份改变时更新城市
+            province.addEventListener('change', function() {
+                city.innerHTML = '<option value="" selected disabled>请选择城市</option>';
+                district.innerHTML = '<option value="" selected disabled>请先选择城市</option>';
+                
+                const selectedProvince = this.value;
+                if (selectedProvince && regionData[selectedProvince]) {
+                    const cities = Object.keys(regionData[selectedProvince]);
+                    cities.forEach(cityName => {
+                        const option = document.createElement('option');
+                        option.value = cityName;
+                        option.textContent = cityName;
+                        city.appendChild(option);
+                    });
+                }
+            });
+            
+            // 城市改变时更新区县
+            city.addEventListener('change', function() {
+                district.innerHTML = '<option value="" selected disabled>请选择区/县</option>';
+                
+                const selectedProvince = province.value;
+                const selectedCity = this.value;
+                
+                if (selectedProvince && selectedCity && 
+                    regionData[selectedProvince] && 
+                    regionData[selectedProvince][selectedCity]) {
+                    const districts = regionData[selectedProvince][selectedCity];
+                    districts.forEach(districtName => {
+                        const option = document.createElement('option');
+                        option.value = districtName;
+                        option.textContent = districtName;
+                        district.appendChild(option);
+                    });
+                }
+            });
+            
+            // 使用Axios提交表单
+            const farmerForm = document.getElementById('farmerForm');
+            farmerForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+                
+                if (!this.checkValidity()) {
+                    this.classList.add('was-validated');
+                    return;
+                }
+                
+                // 收集表单数据
+                const formData = new URLSearchParams();
+                const formElements = this.elements;
+                
+                for (let i = 0; i < formElements.length; i++) {
+                    const element = formElements[i];
+                    if (element.name && element.value) {
+                        formData.append(element.name, element.value);
+                    }
+                }
+                
+                // 发送请求
+                http.post('/admin/farmers/save', formData)
+                    .then(response => {
+                        showToast('农户信息保存成功', 'success');
+                        setTimeout(() => {
+                            window.location.href = '/admin/farmers/approved';
+                        }, 1000);
+                    })
+                    .catch(error => {
+                        const errorMessage = error.response?.data || '保存失败，请检查表单信息后重试';
+                        showToast(errorMessage, 'danger');
+                    });
+            });
+        });
+        
+        // 显示提示消息
+        function showToast(message, type = 'success') {
+            const toastContainer = document.getElementById('toast-container') || (() => {
+                const container = document.createElement('div');
+                container.id = 'toast-container';
+                container.className = 'position-fixed bottom-0 end-0 p-3';
+                container.style.zIndex = '1050';
+                document.body.appendChild(container);
+                return container;
+            })();
+            
+            const toastId = 'toast-' + Date.now();
+            const toastEl = document.createElement('div');
+            toastEl.className = `toast align-items-center text-white bg-${type} border-0`;
+            toastEl.id = toastId;
+            toastEl.setAttribute('role', 'alert');
+            toastEl.setAttribute('aria-live', 'assertive');
+            toastEl.setAttribute('aria-atomic', 'true');
+            
+            toastEl.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            `;
+            
+            toastContainer.appendChild(toastEl);
+            const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+            toast.show();
+            
+            toastEl.addEventListener('hidden.bs.toast', () => {
+                toastEl.remove();
+            });
+        }
+    </script>
+    
+    <style th:fragment="styles">
+        .form-label {
+            font-weight: 500;
+        }
+        
+        .text-danger {
+            color: var(--danger-color) !important;
+        }
+        
+        .input-group-text {
+            background-color: var(--primary-light);
+            color: var(--primary-dark);
+            border-color: var(--border-color);
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+        }
+        
+        .was-validated .form-control:invalid, .was-validated .form-select:invalid {
+            border-color: var(--danger-color);
+        }
+        
+        .was-validated .form-control:valid, .was-validated .form-select:valid {
+            border-color: var(--success-color);
+        }
+    </style>
+</body>
+</html> 
